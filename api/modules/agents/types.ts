@@ -1,0 +1,29 @@
+export type AgentName = 'design_spec' | 'workflow_designer' | 'content_strategist' | 'orchestrator'
+
+export type AgentStatus = 'pending' | 'running' | 'succeeded' | 'failed'
+
+export interface AgentContext {
+  userId: string
+  projectId?: string
+  sectorCode?: string
+  wizardAnswers?: Record<string, any>
+  extra?: Record<string, any>
+  runId?: string
+}
+
+export interface AgentArtifactPayload {
+  type: 'plan' | 'task_list' | 'spec' | 'copy' | 'log'
+  title: string
+  content: string
+  meta?: Record<string, any>
+}
+
+export interface AgentRun {
+  id: string
+  agentName: AgentName
+  userId: string
+  projectId?: string
+  status: AgentStatus
+  createdAt: string
+  updatedAt: string
+}

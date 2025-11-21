@@ -1,0 +1,88 @@
+/**
+ * This is a API server
+ */
+
+import express, {
+  type Request,
+  type Response,
+  type NextFunction,
+} from 'express'
+import cors from 'cors'
+import path from 'path'
+import dotenv from 'dotenv'
+import { fileURLToPath } from 'url'
+import authRoutes from './routes/auth.js'
+import projectRoutes from './routes/projects.js'
+import sectorRoutes from './routes/sectors.js'
+import wizardRoutes from './routes/wizards.js'
+import { errorHandler } from './core/error-handler.js'
+import { logger } from './core/logger.js'
+import aiRoutes from './modules/ai/aiRoutes.js'
+import agentsRoutes from './modules/agents/routes.js'
+import telemetryRoutes from './modules/telemetry/routes.js'
+import aiOptimizerRoutes from './modules/ai/optimizer/routes.js'
+import contentRoutes from './modules/content/routes.js'
+import helmet from 'helmet'
+import morgan from 'morgan'
+import rateLimit from 'express-rate-limit'
+
+// for esm mode
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+// load env
+dotenv.config({ path: path.join(__dirname, '.env') })
+
+const app: express.Application = express()
+
+app.use(cors())
+app.use(helmet())
+app.use(morgan('dev'))
+app.use(
+  rateLimit({
+    windowMs: 60 * 1000,
+    limit: 200,
+    standardHeaders: true,
+    legacyHeaders: false,
+  })
+)
+app.use(express.json({ limit: '10mb' }))
+app.use(express.urlencoded({ extended: true, limit: '10mb' }))
+
+/**
+ * API Routes
+ */
+app.use('/api/auth', authRoutes)
+app.use('/api/projects', projectRoutes)
+app.use('/api/sectors', sectorRoutes)
+app.use('/api/wizards', wizardRoutes)
+app.use('/api/ai', aiRoutes)
+app.use('/api/agents', agentsRoutes)
+app.use('/api/telemetry', telemetryRoutes)
+app.use('/api/ai/optimize', aiOptimizerRoutes)
+app.use('/api', contentRoutes)
+
+/**
+ * health
+ */
+app.use(
+  '/api/health',
+  (req: Request, res: Response): void => {
+    res.status(200).json({ success: true, message: 'ok' })
+  },
+)
+
+/**
+ * error handler middleware
+ */
+app.use(errorHandler)
+
+/**
+ * 404 handler
+ */
+app.use((req: Request, res: Response) => {
+  logger.warn({ path: req.path }, 'API not found')
+  res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'API not found' } })
+})
+
+export default app

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diagnostic Page</title>
+  <style>
+    body {
+      font-family: system-ui;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #fff;
+    }
+    .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+    .ok { background: #059669; }
+    .error { background: #dc2626; }
+    pre { background: #0a0a0a; padding: 15px; border-radius: 5px; overflow: auto; }
+  </style>
+</head>
+<body>
+  <h1>🔧 Ayazma ONE - Diagnostic Page</h1>
+  
+  <div id="status"></div>
+  
+  <script type="module">
+    const statusDiv = document.getElementById('status');
+    
+    async function checkEnvironment() {
+      let html = '';
+      
+      // Check environment variables
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const apiUrl = import.meta.env.VITE_API_URL;
+      
+      html += `<div class="status ${supabaseUrl ? 'ok' : 'error'}">
+        VITE_SUPABASE_URL: ${supabaseUrl || 'MISSING!'}
+      </div>`;
+      
+      html += `<div class="status ${apiUrl ? 'ok' : 'error'}">
+        VITE_API_URL: ${apiUrl || 'MISSING!'}
+      </div>`;
+      
+      // Check backend
+      try {
+        const response = await fetch(`${apiUrl}/health`);
+        const data = await response.json();
+        html += `<div class="status ok">
+          Backend Health: OK
+          <pre>${JSON.stringify(data, null, 2)}</pre>
+        </div>`;
+      } catch (error) {
+        html += `<div class="status error">
+          Backend Health: FAILED
+          <pre>${error.message}</pre>
+        </div>`;
+      }
+      
+      // Check Supabase
+      try {
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabase = createClient(supabaseUrl, import.meta.env.VITE_SUPABASE_ANON_KEY);
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) throw error;
+        
+        html += `<div class="status ok">
+          Supabase Connection: OK
+          <pre>Session: ${data.session ? 'Active' : 'No active session'}</pre>
+        </div>`;
+      } catch (error) {
+        html += `<div class="status error">
+          Supabase Connection: FAILED
+          <pre>${error.message}</pre>
+        </div>`;
+      }
+      
+      statusDiv.innerHTML = html;
+    }
+    
+    checkEnvironment();
+  </script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+import { AppError } from '../../core/app-error.js'
+import { logger } from '../../core/logger.js'
+import { config } from '../../core/config.js'
+import type { AiRouterInput, AiRouterOutput } from './types.js'
+import { providerRegistry } from './providers/ProviderRegistry.js'
+import { resolveEffectiveAiConfig } from './configResolver.js'
+import { logAiUsage } from './usageLogger.js'
+
+function selectModel(taskType: string, preferences?: { costPreference?: string; latencyPreference?: string }, defaultModel?: string) {
+  if (taskType === 'app_spec_suggestion' || taskType === 'workflow_suggestion') return 'gpt-4o'
+  if (preferences?.costPreference === 'low') return 'gpt-4o-mini'
+  return defaultModel || config.defaultAiModel || 'gpt-4o-mini'
+}
+
+export async function routeAiRequest(input: AiRouterInput): Promise<AiRouterOutput> {
+  const effective = await resolveEffectiveAiConfig({ userId: input.userId, projectId: input.projectId, preferences: input.preferences })
+  const providerName = input.providerOverride || effective.provider || config.defaultAiProvider || 'openai'
+  const model = selectModel(input.taskType, input.preferences, effective.model)
+  const provider = providerRegistry.get(providerName)
+
+  try {
+    const result = await provider.call({ ...input, context: { ...(input.context || {}), modelOverride: model } })
+    await logAiUsage({
+      userId: input.userId,
+      projectId: input.projectId,
+      agentRunId: input.agentRunId,
+      provider: result.provider,
+      model: result.model,
+      taskType: input.taskType,
+      inputTokens: result.usage?.inputTokens,
+      outputTokens: result.usage?.outputTokens,
+      totalTokens: result.usage?.totalTokens,
+      costUsd: result.usage?.costUsd,
+      latencyMs: result.usage?.latencyMs,
+    })
+    return result
+  } catch (e: any) {
+    logger.error({ err: e?.message, provider: providerName }, 'AI request exception')
+    if (e instanceof AppError) throw e
+    throw new AppError('AI_REQUEST_ERROR', 'Failed to complete AI request', 502)
+  }
+}
