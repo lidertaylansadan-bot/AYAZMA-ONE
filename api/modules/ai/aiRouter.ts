@@ -7,14 +7,16 @@ import { resolveEffectiveAiConfig } from './configResolver.js'
 import { logAiUsage } from './usageLogger.js'
 
 function selectModel(taskType: string, preferences?: { costPreference?: string; latencyPreference?: string }, defaultModel?: string) {
-  if (taskType === 'app_spec_suggestion' || taskType === 'workflow_suggestion') return 'gpt-4o'
-  if (preferences?.costPreference === 'low') return 'gpt-4o-mini'
-  return defaultModel || config.defaultAiModel || 'gpt-4o-mini'
+  // If a specific model is requested in preferences, use it
+  if (defaultModel) return defaultModel
+
+  // Default fallback
+  return config.defaultAiModel || 'gemini-2.5-flash'
 }
 
 export async function routeAiRequest(input: AiRouterInput): Promise<AiRouterOutput> {
   const effective = await resolveEffectiveAiConfig({ userId: input.userId, projectId: input.projectId, preferences: input.preferences })
-  const providerName = input.providerOverride || effective.provider || config.defaultAiProvider || 'openai'
+  const providerName = input.providerOverride || effective.provider || config.defaultAiProvider || 'google'
   const model = selectModel(input.taskType, input.preferences, effective.model)
   const provider = providerRegistry.get(providerName)
 

@@ -1,4 +1,3 @@
-```
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
@@ -21,7 +20,7 @@ export function Login() {
 
     try {
       const { error } = await signIn(email, password)
-      
+
       if (error) {
         toast.error(error.message)
       } else {
@@ -36,7 +35,7 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0f172a] relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-premium-bg relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-600/20 blur-[100px]" />
@@ -44,13 +43,13 @@ export function Login() {
       </div>
 
       <Toaster position="top-right" theme="dark" />
-      
-      <motion.div 
+
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md z-10 p-4"
       >
-        <div className="glass-panel rounded-2xl p-8 shadow-2xl border border-white/10">
+        <div className="glass-panel rounded-2xl p-8 shadow-glass border border-glass-border">
           <div className="text-center mb-8">
             <motion.div
               initial={{ scale: 0.5, opacity: 0 }}
@@ -60,10 +59,10 @@ export function Login() {
             >
               <img src="/src/assets/logo.png" alt="Logo" className="w-10 h-10 brightness-0 invert" />
             </motion.div>
-            <h2 className="text-3xl font-bold text-white mb-2">Hoş Geldiniz</h2>
-            <p className="text-gray-400">Ayazma ONE Core Panel'e giriş yapın</p>
+            <h2 className="text-3xl font-bold text-premium-text mb-2">Hoş Geldiniz</h2>
+            <p className="text-premium-muted">Ayazma ONE Core Panel'e giriş yapın</p>
           </div>
-          
+
           <form className="space-y-6" onSubmit={handleLogin}>
             <Input
               label="E-posta"
@@ -74,7 +73,7 @@ export function Login() {
               icon={<Mail className="w-4 h-4" />}
               required
             />
-            
+
             <Input
               label="Şifre"
               type="password"
@@ -103,7 +102,7 @@ export function Login() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-lg shadow-blue-500/25"
+              className="w-full bg-primary-gradient hover:opacity-90 shadow-lg shadow-blue-500/25 transition-opacity"
             >
               {loading ? 'Giriş yapılıyor...' : 'Giriş Yap'}
             </Button>
@@ -112,10 +111,10 @@ export function Login() {
           <div className="mt-8">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-700" />
+                <div className="w-full border-t border-glass-border" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-[#1e293b]/80 text-gray-400 backdrop-blur-sm">veya devam et</span>
+                <span className="px-2 bg-premium-card/80 text-premium-muted backdrop-blur-sm rounded">veya devam et</span>
               </div>
             </div>
 
@@ -168,4 +167,3 @@ export function Login() {
     </div>
   )
 }
-```

@@ -18,7 +18,7 @@ const schema = z.object({
   AI_OPENAI_API_KEY: z.string().optional(),
   AI_GOOGLE_API_KEY: z.string().optional(),
   DEFAULT_AI_PROVIDER: z.string().default('google'),
-  DEFAULT_AI_MODEL: z.string().default('gemini-1.5-flash'),
+  DEFAULT_AI_MODEL: z.string().default('gemini-2.5-flash'),
 })
 
 const parsed = schema.safeParse(process.env)
