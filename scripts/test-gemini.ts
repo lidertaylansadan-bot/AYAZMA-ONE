@@ -20,7 +20,7 @@ async function main() {
         console.log('Sending request to Gemini (model: gemini-pro)...');
         const result = await provider.call({
             prompt: 'Hello, are you working? Reply with "Yes, I am Gemini!"',
-            context: { modelOverride: 'gemini-pro' },
+            context: { modelOverride: 'gemini-2.5-flash' },
             preferences: {}
         });
 

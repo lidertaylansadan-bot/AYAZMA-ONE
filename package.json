@@ -15,7 +15,8 @@
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:ci": "vitest --run --coverage --reporter=verbose --reporter=json",
-    "connect:supabase": "tsx scripts/supabase-connect.ts"
+    "connect:supabase": "tsx scripts/supabase-connect.ts",
+    "testsprite": "npx -y @testsprite/testsprite-mcp@latest generateCodeAndExecute"
   },
   "dependencies": {
     "@supabase/auth-ui-react": "^0.4.7",

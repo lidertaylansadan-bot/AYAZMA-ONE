@@ -1,11 +1,6 @@
 import { BaseAgent } from './BaseAgent.js'
 import type { AgentName } from './types.js'
 import { AppError } from '../../core/app-error.js'
-import { DesignSpecAgent } from './DesignAgent.js'
-import { WorkflowDesignerAgent } from './WorkflowDesignerAgent.js'
-import { ContentStrategistAgent } from './ContentStrategistAgent.js'
-
-import { OrchestratorAgent } from './OrchestratorAgent.js'
 
 class AgentRegistry {
   private agents = new Map<AgentName, BaseAgent>()
@@ -26,9 +21,7 @@ class AgentRegistry {
 }
 
 const registry = new AgentRegistry()
-registry.register(new DesignSpecAgent())
-registry.register(new WorkflowDesignerAgent())
-registry.register(new ContentStrategistAgent())
-registry.register(new OrchestratorAgent())
+// Agents are registered via registerAgents.ts to avoid circular dependencies
+
 
 export const agentRegistry = registry

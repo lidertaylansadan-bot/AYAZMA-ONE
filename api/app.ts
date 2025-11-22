@@ -33,6 +33,10 @@ const __dirname = path.dirname(__filename)
 // load env
 dotenv.config({ path: path.join(__dirname, '.env') })
 
+// Register AI Agents
+import { registerAllAgents } from './modules/agents/registerAgents.js'
+registerAllAgents()
+
 const app: express.Application = express()
 
 app.use(cors())

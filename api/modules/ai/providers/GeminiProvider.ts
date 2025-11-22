@@ -23,7 +23,9 @@ export class GeminiProvider implements AiProvider {
         const started = Date.now()
 
         // Google Generative AI REST API
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.aiGoogleKey}`
+        const modelId = model.startsWith('models/') ? model : `models/${model}`
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/${modelId}:generateContent?key=${config.aiGoogleKey}`
+        console.log('Gemini API URL:', apiUrl.replace(config.aiGoogleKey || '', 'HIDDEN_KEY'));
 
         const res = await fetch(apiUrl, {
             method: 'POST',
