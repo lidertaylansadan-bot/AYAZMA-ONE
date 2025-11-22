@@ -1,4 +1,3 @@
-```
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
@@ -21,7 +20,7 @@ export function Register() {
 
     try {
       const { error } = await signUp(email, password, fullName)
-      
+
       if (error) {
         toast.error(error.message)
       } else {
@@ -35,7 +34,7 @@ export function Register() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0f172a] relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-premium-bg relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-600/20 blur-[100px]" />
@@ -43,13 +42,13 @@ export function Register() {
       </div>
 
       <Toaster position="top-right" theme="dark" />
-      
-      <motion.div 
+
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md z-10 p-4"
       >
-        <div className="glass-panel rounded-2xl p-8 shadow-2xl border border-white/10">
+        <div className="glass-panel rounded-2xl p-8 shadow-glass border border-glass-border">
           <div className="text-center mb-8">
             <motion.div
               initial={{ scale: 0.5, opacity: 0 }}
@@ -59,10 +58,10 @@ export function Register() {
             >
               <img src="/src/assets/logo.png" alt="Logo" className="w-10 h-10 brightness-0 invert" />
             </motion.div>
-            <h2 className="text-3xl font-bold text-white mb-2">Hesap Oluştur</h2>
-            <p className="text-gray-400">Ayazma ONE dünyasına katılın</p>
+            <h2 className="text-3xl font-bold text-premium-text mb-2">Hesap Oluştur</h2>
+            <p className="text-premium-muted">Ayazma ONE dünyasına katılın</p>
           </div>
-          
+
           <form className="space-y-6" onSubmit={handleRegister}>
             <Input
               label="Tam Adınız"
@@ -83,7 +82,7 @@ export function Register() {
               icon={<Mail className="w-4 h-4" />}
               required
             />
-            
+
             <Input
               label="Şifre"
               type="password"
@@ -97,14 +96,14 @@ export function Register() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-lg shadow-blue-500/25"
+              className="w-full bg-primary-gradient hover:opacity-90 shadow-lg shadow-blue-500/25 transition-opacity"
             >
               {loading ? 'Kayıt olunuyor...' : 'Kayıt Ol'}
             </Button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-gray-700/50 text-center">
-            <p className="text-gray-400 text-sm">
+          <div className="mt-8 pt-6 border-t border-glass-border text-center">
+            <p className="text-premium-muted text-sm">
               Zaten hesabınız var mı?{' '}
               <Link
                 to="/login"
@@ -119,4 +118,3 @@ export function Register() {
     </div>
   )
 }
-```
