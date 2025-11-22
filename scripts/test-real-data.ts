@@ -1,5 +1,6 @@
 import dotenv from 'dotenv'
 import path from 'path'
+import fs from 'fs'
 import { fileURLToPath } from 'url'
 import { createClient } from '@supabase/supabase-js'
 import { DesignSpecAgent } from '../api/modules/agents/DesignAgent.js'
@@ -8,10 +9,21 @@ import { ContentStrategistAgent } from '../api/modules/agents/ContentStrategistA
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-dotenv.config({ path: path.join(__dirname, '../api/.env') })
+
+const apiEnvPath = path.join(__dirname, '../api/.env')
+const rootEnvPath = path.join(__dirname, '../.env')
+
+console.log('Checking env files:')
+console.log(`- API .env: ${apiEnvPath} (${fs.existsSync(apiEnvPath) ? 'Exists' : 'Missing'})`)
+console.log(`- Root .env: ${rootEnvPath} (${fs.existsSync(rootEnvPath) ? 'Exists' : 'Missing'})`)
+
+dotenv.config({ path: apiEnvPath })
+dotenv.config({ path: rootEnvPath })
+
+console.log('Loaded Environment Variables:', Object.keys(process.env).filter(k => k.startsWith('SUPABASE')))
 
 const supabaseUrl = process.env.SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_SERVICE_KEY
+const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
 
 if (!supabaseUrl || !supabaseKey) {
     console.error('❌ Missing Supabase credentials')
