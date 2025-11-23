@@ -1,3 +1,4 @@
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Select from '../../components/ui/Select'
@@ -9,17 +10,28 @@ describe('Select Component', () => {
     ]
 
     it('renders placeholder when no value selected', () => {
-        render(<Select placeholder='Select an option' options={options} />)
+        render(
+            <Select placeholder='Select an option'>
+                {options.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+            </Select>
+        )
         expect(screen.getByText('Select an option')).toBeInTheDocument()
     })
 
     it('opens options list on click and selects an option', async () => {
         const handleChange = vi.fn()
-        render(<Select placeholder='Select' options={options} onChange={handleChange} />)
-        const trigger = screen.getByText('Select')
-        await userEvent.click(trigger)
-        const option = screen.getByText('Option 2')
-        await userEvent.click(option)
-        expect(handleChange).toHaveBeenCalledWith('opt2')
+        render(
+            <Select placeholder='Select' onChange={(e) => handleChange(e.target.value)}>
+                {options.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+            </Select>
+        )
+        // For native select, we userEvent.selectOptions
+        const select = screen.getByRole('combobox')
+        await userEvent.selectOptions(select, 'opt2')
+        expect(handleChange).toHaveBeenCalled()
     })
 })

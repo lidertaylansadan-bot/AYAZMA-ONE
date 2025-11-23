@@ -1,5 +1,6 @@
+import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import ProjectCard from '../../components/ui/ProjectCard'
+import ProjectCard from './ProjectCard'
 
 describe('ProjectCard Component', () => {
     it('renders project title and status', () => {

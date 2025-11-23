@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
+import { Link } from 'react-router-dom'
 import DashboardLayout from '../components/layout/DashboardLayout'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
@@ -14,8 +13,6 @@ import {
   Plus,
   Folder,
   Wand2,
-  Workflow,
-  FileText,
   Eye,
   Building2,
   Globe,
@@ -23,16 +20,12 @@ import {
   Video,
   Layers,
   TrendingUp,
-  Clock,
   CheckCircle2
 } from 'lucide-react'
-import { Project } from '../../shared/types'
 import { Toaster, toast } from 'sonner'
 
 export function Dashboard() {
-  const navigate = useNavigate()
-  const { user } = useAuth()
-  const { projects, setProjects, setCurrentProject } = useStore()
+  const { projects, setProjects } = useStore()
   const [loading, setLoading] = useState(true)
   const [showNewProjectModal, setShowNewProjectModal] = useState(false)
 

@@ -5,7 +5,6 @@
 import express, {
   type Request,
   type Response,
-  type NextFunction,
 } from 'express'
 import cors from 'cors'
 import path from 'path'
@@ -24,7 +23,6 @@ import aiOptimizerRoutes from './modules/ai/optimizer/routes.js'
 import contentRoutes from './modules/content/routes.js'
 import helmet from 'helmet'
 import morgan from 'morgan'
-import rateLimit from 'express-rate-limit'
 
 // for esm mode
 const __filename = fileURLToPath(import.meta.url)
@@ -43,17 +41,12 @@ initWorkers()
 
 const app: express.Application = express()
 
+import { standardLimiter } from './middleware/rateLimiter.js'
+
 app.use(cors())
 app.use(helmet())
 app.use(morgan('dev'))
-app.use(
-  rateLimit({
-    windowMs: 60 * 1000,
-    limit: 200,
-    standardHeaders: true,
-    legacyHeaders: false,
-  })
-)
+app.use(standardLimiter)
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 

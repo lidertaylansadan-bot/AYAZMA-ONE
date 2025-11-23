@@ -252,6 +252,23 @@ npm run lint         # Run ESLint
 npm run typecheck    # Run TypeScript type checking
 ```
 
+### Testing
+
+Run the test suite to verify functionality:
+
+```bash
+# Run all tests
+npm test
+
+# Run tests with UI
+npm run test:ui
+
+# Check test coverage
+npm run coverage
+```
+
+The project uses Vitest for unit and integration testing.
+
 ## 🔒 Security
 
 - All API routes are protected with authentication middleware

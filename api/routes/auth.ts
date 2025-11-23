@@ -1,17 +1,23 @@
 import { Router } from 'express';
-import { AuthenticatedRequest, authenticateToken } from '../middleware/auth';
-import { ProfileService } from '../services/profileService';
-import { ApiResponse } from '../../shared/types';
+import { AuthenticatedRequest, authenticateToken } from '../middleware/auth.js';
+import { ProfileService } from '../services/profileService.js';
+import { authLimiter } from '../middleware/rateLimiter.js';
+import { validateBody } from '../middleware/validate.js';
+import { z } from 'zod';
 
 const router = Router();
+
+const updateProfileSchema = z.object({
+  fullName: z.string().min(1, 'Full name is required')
+});
 
 // Get current user profile
 router.get('/me', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user) {
-      return res.status(401).json({ 
-        success: false, 
-        error: 'User not authenticated' 
+      return res.status(401).json({
+        success: false,
+        error: 'User not authenticated'
       });
     }
 
@@ -19,39 +25,31 @@ router.get('/me', authenticateToken, async (req: AuthenticatedRequest, res) => {
     res.json(result);
   } catch (error) {
     console.error('Get profile error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Internal server error' 
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
     });
   }
 });
 
 // Update user profile
-router.put('/me', authenticateToken, async (req: AuthenticatedRequest, res) => {
+router.put('/me', authenticateToken, authLimiter, validateBody(updateProfileSchema), async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user) {
-      return res.status(401).json({ 
-        success: false, 
-        error: 'User not authenticated' 
+      return res.status(401).json({
+        success: false,
+        error: 'User not authenticated'
       });
     }
 
     const { fullName } = req.body;
-    
-    if (!fullName) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Full name is required' 
-      });
-    }
-
     const result = await ProfileService.updateProfile(req.user.id, fullName);
     res.json(result);
   } catch (error) {
     console.error('Update profile error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Internal server error' 
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
     });
   }
 });

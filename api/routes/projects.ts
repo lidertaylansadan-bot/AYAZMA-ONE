@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { AuthenticatedRequest, authenticateToken } from '../middleware/auth';
 import { ProjectService } from '../services/projectService';
 import { ok, fail } from '../core/response.js'
-import { validateBody } from '../core/validate.js'
+import { validateBody } from '../middleware/validate.js'
 import { createProjectSchema, updateProjectSchema } from '../modules/projects/dto.js'
 import { getProjectAiSettings, upsertProjectAiSettings } from '../modules/ai/settingsController.js'
 import { z } from 'zod'
