@@ -14,6 +14,8 @@ import authRoutes from './routes/auth.js'
 import projectRoutes from './routes/projects.js'
 import sectorRoutes from './routes/sectors.js'
 import wizardRoutes from './routes/wizards.js'
+import cockpitRoutes from './routes/cockpit.js'
+import tasksRoutes from './routes/tasks.js'
 import { errorHandler } from './core/error-handler.js'
 import { logger } from './core/logger.js'
 import aiRoutes from './modules/ai/aiRoutes.js'
@@ -61,9 +63,12 @@ app.use('/api/ai', aiRoutes)
 app.use('/api/agents', agentsRoutes)
 app.use('/api/telemetry', telemetryRoutes)
 app.use('/api/ai/optimize', aiOptimizerRoutes)
+app.use('/api/cockpit', cockpitRoutes)
+app.use('/api/tasks', tasksRoutes)
 app.use('/api', contentRoutes)
 
-// Swagger UI - Temporarily disabled due to module resolution issues
+// Swagger UI - Temporarily disabled due to OpenAPI generator issues
+// The generator crashes on startup - needs investigation of zod-to-openapi configuration
 // import swaggerUi from 'swagger-ui-express'
 // import { generateOpenApiSpec } from './core/openapi/generator.js'
 // app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(generateOpenApiSpec()))

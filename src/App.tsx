@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import { Suspense, lazy } from "react"
-import DashboardLayout from "./components/layout/DashboardLayout"
 import { ProtectedRoute } from "./components/ProtectedRoute"
 import Spinner from "./components/ui/Spinner"
 
@@ -8,6 +7,7 @@ import Spinner from "./components/ui/Spinner"
 const Login = lazy(() => import("./pages/Login").then(module => ({ default: module.Login })))
 const Register = lazy(() => import("./pages/Register").then(module => ({ default: module.Register })))
 const Dashboard = lazy(() => import("./pages/Dashboard").then(module => ({ default: module.Dashboard })))
+const Cockpit = lazy(() => import("./pages/Cockpit"))
 const AppWizard = lazy(() => import("./pages/AppWizard").then(module => ({ default: module.AppWizard })))
 const AiPlayground = lazy(() => import("./pages/AiPlayground"))
 const AgentsList = lazy(() => import("./pages/AgentsList"))
@@ -22,8 +22,9 @@ function AppRoutes() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/cockpit" replace />} />
 
+        <Route path="/cockpit" element={<ProtectedRoute><Cockpit /></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
 
         <Route path="/projects" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
