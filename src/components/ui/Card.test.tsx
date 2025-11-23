@@ -19,7 +19,7 @@ describe('Card Component', () => {
         const { container } = render(<Card>Content</Card>)
         const card = container.firstChild
         expect(card).toHaveClass('glass-panel')
-        expect(card).toHaveClass('rounded-xl')
+        expect(card).toHaveClass('rounded-2xl')
         expect(card).toHaveClass('p-6')
     })
 

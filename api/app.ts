@@ -37,6 +37,10 @@ dotenv.config({ path: path.join(__dirname, '.env') })
 import { registerAllAgents } from './modules/agents/registerAgents.js'
 registerAllAgents()
 
+// Initialize Workers
+import { initWorkers } from './modules/agents/workers/index.js'
+initWorkers()
+
 const app: express.Application = express()
 
 app.use(cors())
@@ -65,6 +69,11 @@ app.use('/api/agents', agentsRoutes)
 app.use('/api/telemetry', telemetryRoutes)
 app.use('/api/ai/optimize', aiOptimizerRoutes)
 app.use('/api', contentRoutes)
+
+// Swagger UI - Temporarily disabled due to module resolution issues
+// import swaggerUi from 'swagger-ui-express'
+// import { generateOpenApiSpec } from './core/openapi/generator.js'
+// app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(generateOpenApiSpec()))
 
 /**
  * health

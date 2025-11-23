@@ -19,6 +19,7 @@
     "testsprite": "npx -y @testsprite/testsprite-mcp@latest generateCodeAndExecute"
   },
   "dependencies": {
+    "@asteasolutions/zod-to-openapi": "^8.1.0",
     "@supabase/auth-ui-react": "^0.4.7",
     "@supabase/auth-ui-shared": "^0.1.8",
     "@supabase/supabase-js": "^2.84.0",
@@ -41,6 +42,7 @@
     "react-router-dom": "^7.3.0",
     "recharts": "^3.4.1",
     "sonner": "^2.0.7",
+    "swagger-ui-express": "^5.0.1",
     "tailwind-merge": "^3.0.2",
     "zod": "^4.1.12",
     "zustand": "^5.0.3"
@@ -56,6 +58,7 @@
     "@types/node": "^22.15.30",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
+    "@types/swagger-ui-express": "^4.1.8",
     "@vercel/node": "^5.3.6",
     "@vitejs/plugin-react": "^4.4.1",
     "@vitest/coverage-v8": "^4.0.12",

@@ -13,9 +13,9 @@ const router = Router();
 router.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user) {
-      return res.status(401).json({ 
-        success: false, 
-        error: 'User not authenticated' 
+      return res.status(401).json({
+        success: false,
+        error: 'User not authenticated'
       });
     }
 
@@ -23,9 +23,9 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
     res.json(result);
   } catch (error) {
     console.error('Get projects error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Internal server error' 
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
     });
   }
 });
@@ -34,9 +34,9 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
 router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user) {
-      return res.status(401).json({ 
-        success: false, 
-        error: 'User not authenticated' 
+      return res.status(401).json({
+        success: false,
+        error: 'User not authenticated'
       });
     }
 
@@ -44,9 +44,9 @@ router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => 
     res.json(result);
   } catch (error) {
     console.error('Get project error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Internal server error' 
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
     });
   }
 });
@@ -59,6 +59,7 @@ router.post('/', authenticateToken, validateBody(createProjectSchema), async (re
     }
 
     const { name, description, sector, projectType } = req.body;
+    console.log('Creating project with data:', { name, description, sector, projectType, userId: req.user.id })
 
     if (!name || !sector || !projectType) {
       return fail(res, 'VALIDATION_ERROR', 'Name, sector, and project type are required', 400)
@@ -71,6 +72,9 @@ router.post('/', authenticateToken, validateBody(createProjectSchema), async (re
       sector,
       projectType
     );
+
+    console.log('Project creation result:', result)
+
     if (result.success) return ok(res, result.data)
     return fail(res, 'CREATE_FAILED', result.error || 'Internal error', 500)
   } catch (error) {
@@ -103,9 +107,9 @@ router.put('/:id', authenticateToken, validateBody(updateProjectSchema), async (
 router.delete('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user) {
-      return res.status(401).json({ 
-        success: false, 
-        error: 'User not authenticated' 
+      return res.status(401).json({
+        success: false,
+        error: 'User not authenticated'
       });
     }
 
@@ -113,9 +117,9 @@ router.delete('/:id', authenticateToken, async (req: AuthenticatedRequest, res) 
     res.json(result);
   } catch (error) {
     console.error('Delete project error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Internal server error' 
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
     });
   }
 });
@@ -128,8 +132,8 @@ router.get('/:id/ai-settings', authenticateToken, async (req, res, next) => {
 const aiSettingsSchema = z.object({
   provider: z.string().min(1),
   model: z.string().min(1),
-  costPreference: z.enum(['low','balanced','best_quality']),
-  latencyPreference: z.enum(['low','balanced','ok_with_slow']),
+  costPreference: z.enum(['low', 'balanced', 'best_quality']),
+  latencyPreference: z.enum(['low', 'balanced', 'ok_with_slow']),
 })
 
 router.put('/:id/ai-settings', authenticateToken, validateBody(aiSettingsSchema), async (req, res, next) => {

@@ -134,6 +134,7 @@ export function Dashboard() {
 
   return (
     <DashboardLayout title="Projelerim">
+      <h1 className="text-3xl font-bold text-white mb-4">Dashboard</h1>
       <Toaster position="top-right" theme="dark" />
 
       {/* Stats Cards */}

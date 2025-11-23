@@ -1,34 +1,3 @@
-<<<<<<< HEAD
-# AYAZMA-ONE
-=======
-# Ayazma ONE - Core Panel v1
-
-AI-driven production platform where a single founder can create SaaS, web apps, mobile apps, workflows and content from a single dashboard.
-
-## 🚀 Features
-
-### Core Panel v1 MVP
-- **Authentication & Profiles**: Sign up, login, logout, forgot password with Supabase auth
-- **Projects**: Create and manage multiple projects with different sectors and types
-- **Sector Blueprints**: Pre-defined templates for different business sectors (SaaS, Agency, E-commerce, Hotel, Legal Tech)
-- **Wizard Suite v0.1**: Multi-step forms for App, Workflow, and Content creation
-- **Dashboard**: Clean, modern interface with sidebar navigation and project overview
-
-### Database Schema
-- **profiles**: User profiles linked to Supabase auth
-- **projects**: User projects with sector, type, and status tracking
-- **sector_blueprints**: Pre-defined sector templates with JSON configurations
-- **wizard_sessions**: App, Workflow, and Content wizard session data
-
-### Tech Stack
-- **Frontend**: React + TypeScript + Tailwind CSS + Vite
-- **Backend**: Express.js + TypeScript + Node.js
-- **Database**: Supabase (PostgreSQL) with Row Level Security (RLS)
-- **Authentication**: Supabase Auth
-- **State Management**: Zustand
-- **UI Components**: Lucide React icons, Sonner notifications
-
-## 📁 Project Structure
 # AYAZMA-ONE
 
 ## Ayazma ONE - Core Panel v1
@@ -38,6 +7,7 @@ AI-driven production platform where a single founder can create SaaS, web apps, 
 ## 🚀 Features
 
 ### Core Panel v1 MVP
+
 - **Authentication & Profiles**: Sign up, login, logout, forgot password with Supabase auth
 - **Projects**: Create and manage multiple projects with different sectors and types
 - **Sector Blueprints**: Pre-defined templates for different business sectors (SaaS, Agency, E-commerce, Hotel, Legal Tech)
@@ -45,18 +15,22 @@ AI-driven production platform where a single founder can create SaaS, web apps, 
 - **Dashboard**: Clean, modern interface with sidebar navigation and project overview
 
 ### Database Schema
+
 - **profiles**: User profiles linked to Supabase auth
 - **projects**: User projects with sector, type, and status tracking
 - **sector_blueprints**: Pre-defined sector templates with JSON configurations
 - **wizard_sessions**: App, Workflow, and Content wizard session data
 
 ### Tech Stack
+
 - **Frontend**: React + TypeScript + Tailwind CSS + Vite
 - **Backend**: Express.js + TypeScript + Node.js
 - **Database**: Supabase (PostgreSQL) with Row Level Security (RLS)
 - **Authentication**: Supabase Auth
 - **State Management**: Zustand
 - **UI Components**: Lucide React icons, Sonner notifications
+- **Job Queues**: BullMQ with Redis
+- **AI Integration**: Multi-agent system with Google Gemini
 
 ## 📁 Project Structure
 
@@ -90,10 +64,13 @@ ayazma-one/
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js (v18+)
+- Docker Desktop (for Redis)
 - Supabase account and project
 
 ### 1. Clone and Install
+
 ```bash
 git clone <repository-url>
 cd ayazma-one
@@ -103,6 +80,7 @@ npm install
 ### 2. Environment Setup
 
 #### Frontend Environment (.env)
+
 ```bash
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -110,16 +88,35 @@ VITE_API_URL=http://localhost:3001/api
 ```
 
 #### Backend Environment (api/.env)
+
 ```bash
 SUPABASE_URL=your_supabase_url
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 PORT=3001
+REDIS_URL=redis://localhost:6379
+AI_GOOGLE_API_KEY=your_google_api_key
 ```
 
-### 3. Database Setup
+### 3. Redis Setup
+
+AYAZMA-ONE uses Redis for job queues and caching. Follow the [Redis Setup Guide](./docs/REDIS_SETUP.md) to install and configure Redis with Docker.
+
+**Quick start:**
+
+```bash
+# Start Redis container
+docker run -d -p 6379:6379 --name redis redis:alpine
+
+# Verify it's running
+docker exec redis redis-cli PING
+# Expected: PONG
+```
+
+### 4. Database Setup
 
 1. Create a new Supabase project
 2. Run the migration scripts in order:
+
    ```bash
    # Apply migrations through Supabase dashboard or CLI
    # Files are in supabase/migrations/
@@ -131,7 +128,7 @@ PORT=3001
    - `003_create_sector_blueprints.sql` - Sector templates with sample data
    - `004_create_wizard_sessions.sql` - Wizard session tables
 
-### 4. Run Development Servers
+### 5. Run Development Servers
 
 ```bash
 # Frontend (in root directory)
@@ -143,16 +140,19 @@ npm run dev
 ```
 
 The application will be available at:
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:3001
+
+- Frontend: <http://localhost:5173>
+- Backend API: <http://localhost:3001>
 
 ## 📋 API Endpoints
 
 ### Authentication
+
 - `GET /api/auth/me` - Get current user profile
 - `PUT /api/auth/me` - Update user profile
 
 ### Projects
+
 - `GET /api/projects` - List user's projects
 - `POST /api/projects` - Create new project
 - `GET /api/projects/:id` - Get project details
@@ -160,10 +160,12 @@ The application will be available at:
 - `DELETE /api/projects/:id` - Archive project
 
 ### Sectors
+
 - `GET /api/sectors` - List all sector blueprints
 - `GET /api/sectors/:sector_code` - Get sector blueprint details
 
 ### Wizards
+
 - `GET /api/wizards/app?projectId=:id` - Get app wizard sessions
 - `POST /api/wizards/app` - Create app wizard session
 - `GET /api/wizards/workflow?projectId=:id` - Get workflow wizard sessions
@@ -174,16 +176,19 @@ The application will be available at:
 ## 🎯 Usage Guide
 
 ### 1. User Registration & Login
+
 - Navigate to `/register` to create a new account
 - Navigate to `/login` to sign in
 - Use email/password authentication
 
 ### 2. Dashboard
+
 - View all your projects after login
 - Create new projects with sector and type selection
 - Access different wizards for each project
 
 ### 3. Project Creation
+
 - Click "Yeni Proje Oluştur" (Create New Project)
 - Fill in project details:
   - Name and description
@@ -191,6 +196,7 @@ The application will be available at:
   - Project type (SaaS, Web App, Mobile App, Media, Hybrid)
 
 ### 4. App Wizard
+
 - Multi-step form to define your application:
   - Step 1: Target user and persona definition
   - Step 2: Core features identification
@@ -198,7 +204,9 @@ The application will be available at:
   - Step 4: Technical complexity assessment
 
 ### 5. Sector Blueprints
+
 Each sector comes with pre-defined templates:
+
 - **SaaS**: Subscription-based software platform
 - **Agency**: Service-based business with client management
 - **E-commerce**: Online retail platform
@@ -208,17 +216,20 @@ Each sector comes with pre-defined templates:
 ## 🔧 Configuration
 
 ### Supabase Setup
+
 1. Create new project at [supabase.com](https://supabase.com)
 2. Copy your project URL and keys
 3. Enable Row Level Security (RLS) on all tables
 4. Set up authentication with email/password
 
 ### Environment Variables
+
 Make sure to set all required environment variables in both frontend and backend `.env` files.
 
 ## 🛠 Development
 
 ### Frontend Development
+
 ```bash
 npm run dev          # Start development server
 npm run build        # Build for production
@@ -226,6 +237,7 @@ npm run preview      # Preview production build
 ```
 
 ### Backend Development
+
 ```bash
 cd api
 npm run dev          # Start development server with hot reload
@@ -234,6 +246,7 @@ npm start            # Start production server
 ```
 
 ### Code Quality
+
 ```bash
 npm run lint         # Run ESLint
 npm run typecheck    # Run TypeScript type checking
@@ -249,16 +262,19 @@ npm run typecheck    # Run TypeScript type checking
 ## 🚀 Deployment
 
 ### Frontend (Vercel)
+
 1. Connect your GitHub repository to Vercel
 2. Set environment variables in Vercel dashboard
 3. Deploy automatically on push to main branch
 
 ### Backend (Any Node.js hosting)
+
 1. Build the backend: `cd api && npm run build`
 2. Set environment variables on your hosting platform
 3. Deploy the built files and start with `npm start`
 
 ### Database (Supabase)
+
 - Already hosted on Supabase platform
 - Migrations automatically applied
 
@@ -267,6 +283,7 @@ npm run typecheck    # Run TypeScript type checking
 The architecture is designed to be extensible for future features:
 
 ### Planned Features
+
 - **Multi-LLM Router**: Integration with multiple AI providers
 - **Multi-Agent Fabric**: AI agent orchestration system
 - **Content/Video Pipelines**: Automated content generation
@@ -275,6 +292,7 @@ The architecture is designed to be extensible for future features:
 - **API Integrations**: Third-party service integrations
 
 ### Extension Points
+
 - Add new wizard types by extending the wizard_sessions pattern
 - Create new sector blueprints in the database
 - Add new project types to the enum
@@ -296,6 +314,7 @@ This project is part of the Ayazma ONE platform and follows the specified licens
 ## 📞 Support
 
 For support and questions:
+
 - Check the documentation
 - Review the API endpoints
 - Check the database schema
