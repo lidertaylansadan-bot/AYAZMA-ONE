@@ -134,7 +134,7 @@ export function Dashboard() {
 
   return (
     <DashboardLayout title="Projelerim">
-      <Toaster position="top-right" />
+      <Toaster position="top-right" theme="dark" />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -145,13 +145,13 @@ export function Dashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <Card hover={false} className="!p-6">
+            <Card hover={true} className="!p-6 border-t border-white/10">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400 mb-1">{stat.label}</p>
-                  <p className="text-3xl font-bold text-white">{stat.value}</p>
+                  <p className="text-sm text-premium-muted mb-1 font-medium">{stat.label}</p>
+                  <p className="text-4xl font-bold text-white tracking-tight">{stat.value}</p>
                 </div>
-                <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.color}`}>
+                <div className={`p-4 rounded-2xl bg-gradient-to-br ${stat.color} shadow-lg shadow-indigo-500/20`}>
                   <stat.icon className="w-6 h-6 text-white" />
                 </div>
               </div>
@@ -161,29 +161,30 @@ export function Dashboard() {
       </div>
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-white mb-1">Tüm Projeler</h2>
-          <p className="text-gray-400 text-sm">Çalışmalarınızı yönetin ve geliştirin</p>
+          <h2 className="text-2xl font-bold text-white mb-1 tracking-tight">Tüm Projeler</h2>
+          <p className="text-premium-muted text-sm">Çalışmalarınızı yönetin ve geliştirin</p>
         </div>
-        <Button onClick={() => setShowNewProjectModal(true)}>
-          <Plus className="w-4 h-4 mr-2" /> Yeni Proje
+        <Button onClick={() => setShowNewProjectModal(true)} className="bg-primary-gradient hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 rounded-xl px-6 py-2.5">
+          <Plus className="w-5 h-5 mr-2" /> Yeni Proje
         </Button>
       </div>
 
       {projects.length === 0 ? (
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="text-center py-20 glass-panel rounded-2xl border-dashed"
+          className="text-center py-24 glass-panel rounded-3xl border-dashed border-2 border-glass-border/50"
         >
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
-            <Folder className="w-10 h-10 text-white" />
+          <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-500/20 to-indigo-500/20 flex items-center justify-center relative">
+            <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full"></div>
+            <Folder className="w-12 h-12 text-blue-400 relative z-10" />
           </div>
-          <h3 className="text-xl font-semibold text-white mb-3">Henüz projeniz yok</h3>
-          <p className="text-gray-400 mb-6 max-w-md mx-auto">İlk projenizi oluşturarak harika işlere başlayın</p>
-          <Button onClick={() => setShowNewProjectModal(true)} className="mx-auto">
-            <Plus className="w-4 h-4 mr-2" />
+          <h3 className="text-2xl font-bold text-white mb-3">Henüz projeniz yok</h3>
+          <p className="text-premium-muted mb-8 max-w-md mx-auto text-lg">İlk projenizi oluşturarak harika işlere başlayın</p>
+          <Button onClick={() => setShowNewProjectModal(true)} className="mx-auto bg-primary-gradient px-8 py-3 rounded-xl text-lg">
+            <Plus className="w-5 h-5 mr-2" />
             Yeni Proje Oluştur
           </Button>
         </motion.div>
@@ -196,45 +197,47 @@ export function Dashboard() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
             >
-              <Card>
-                <div className="flex items-center justify-between mb-4">
+              <Card className="h-full flex flex-col border-t border-white/5">
+                <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center">
-                    <div className="p-2 rounded-lg bg-blue-500/20 text-blue-400 mr-3">
+                    <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-white/5 text-blue-400 mr-4">
                       {getProjectIcon(project.project_type)}
                     </div>
-                    <h3 className="text-lg font-semibold text-white">{project.name}</h3>
+                    <h3 className="text-lg font-bold text-white tracking-tight">{project.name}</h3>
                   </div>
-                  <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${getStatusColor(project.status)}`}>
-                    {project.status}
+                  <span className={`px-3 py-1 text-xs font-bold rounded-full border ${getStatusColor(project.status)}`}>
+                    {project.status.toUpperCase()}
                   </span>
                 </div>
 
-                <p className="text-gray-400 text-sm mb-4 line-clamp-2 min-h-[40px]">
+                <p className="text-premium-muted text-sm mb-6 line-clamp-2 min-h-[40px] leading-relaxed">
                   {project.description || 'Açıklama yok'}
                 </p>
 
-                <div className="flex items-center justify-between text-sm text-gray-500 mb-5 pb-5 border-b border-gray-700/50">
-                  <span className="flex items-center text-gray-400">
-                    <span className="font-medium">{project.sector}</span>
-                  </span>
-                  <span className="text-gray-500">{new Date(project.created_at).toLocaleDateString('tr-TR')}</span>
-                </div>
+                <div className="mt-auto">
+                  <div className="flex items-center justify-between text-sm text-gray-500 mb-6 pb-6 border-b border-white/5">
+                    <span className="flex items-center text-gray-400 bg-white/5 px-3 py-1 rounded-lg">
+                      <span className="font-medium text-xs uppercase tracking-wider">{project.sector}</span>
+                    </span>
+                    <span className="text-gray-500 font-mono text-xs">{new Date(project.created_at).toLocaleDateString('tr-TR')}</span>
+                  </div>
 
-                <div className="flex gap-2">
-                  <Link
-                    to={`/projects/${project.id}`}
-                    className="flex-1 flex items-center justify-center px-3 py-2 text-sm bg-gray-800/50 text-gray-300 rounded-lg hover:bg-gray-700/50 border border-gray-700 hover:border-gray-600 transition-all"
-                  >
-                    <Eye className="w-4 h-4 mr-1.5" />
-                    Detay
-                  </Link>
-                  <Link
-                    to={`/wizard/app?project=${project.id}`}
-                    className="flex-1 flex items-center justify-center px-3 py-2 text-sm bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-500 hover:to-indigo-500 transition-all shadow-lg shadow-blue-500/25"
-                  >
-                    <Wand2 className="w-4 h-4 mr-1.5" />
-                    Wizard
-                  </Link>
+                  <div className="flex gap-3">
+                    <Link
+                      to={`/projects/${project.id}`}
+                      className="flex-1 flex items-center justify-center px-4 py-2.5 text-sm font-medium bg-white/5 text-gray-300 rounded-xl hover:bg-white/10 border border-white/5 transition-all"
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      Detay
+                    </Link>
+                    <Link
+                      to={`/wizard/app?project=${project.id}`}
+                      className="flex-1 flex items-center justify-center px-4 py-2.5 text-sm font-medium bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-500 hover:to-indigo-500 transition-all shadow-lg shadow-blue-500/20"
+                    >
+                      <Wand2 className="w-4 h-4 mr-2" />
+                      Wizard
+                    </Link>
+                  </div>
                 </div>
               </Card>
             </motion.div>
@@ -245,32 +248,34 @@ export function Dashboard() {
       {/* New Project Modal */}
       <AnimatePresence>
         {showNewProjectModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 px-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="glass-panel rounded-2xl p-6 w-full max-w-md shadow-2xl"
+              className="glass-panel rounded-3xl p-8 w-full max-w-md shadow-2xl border border-white/10 relative overflow-hidden"
             >
-              <h2 className="text-2xl font-bold text-white mb-6">Yeni Proje Oluştur</h2>
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+              <h2 className="text-3xl font-bold text-white mb-8 tracking-tight">Yeni Proje</h2>
 
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <Input
                   label="Proje Adı"
                   value={newProject.name}
                   onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
                   placeholder="Örn: E-Ticaret Platformu"
                   icon={<Folder className="w-4 h-4" />}
+                  className="bg-black/20 border-white/10 focus:border-indigo-500/50 rounded-xl"
                 />
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-2 ml-1">
                     Açıklama
                   </label>
                   <textarea
                     value={newProject.description}
                     onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-gray-900/50 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 hover:border-gray-600 resize-none"
+                    className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-all duration-200 resize-none"
                     rows={3}
                     placeholder="Proje hakkında kısa bir açıklama yazın..."
                   />
@@ -280,6 +285,7 @@ export function Dashboard() {
                   label="Sektör"
                   value={newProject.sector}
                   onChange={(e) => setNewProject({ ...newProject, sector: e.target.value })}
+                  className="bg-black/20 border-white/10 focus:border-indigo-500/50 rounded-xl"
                 >
                   <option value="">Sektör seçin</option>
                   {(sectors.length > 0 ? sectors : defaultSectors).map((sector) => (
@@ -290,28 +296,33 @@ export function Dashboard() {
                 </Select>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-2 ml-1">
                     Proje Türü
                   </label>
-                  <select
-                    value={newProject.projectType}
-                    onChange={(e) => setNewProject({ ...newProject, projectType: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-gray-900/50 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 hover:border-gray-600 cursor-pointer"
-                  >
-                    <option value="saas">SaaS Platform</option>
-                    <option value="web_app">Web Uygulaması</option>
-                    <option value="mobile_app">Mobil Uygulama</option>
-                    <option value="media">Medya Platformu</option>
-                    <option value="hybrid">Hibrit Çözüm</option>
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={newProject.projectType}
+                      onChange={(e) => setNewProject({ ...newProject, projectType: e.target.value })}
+                      className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-all duration-200 appearance-none cursor-pointer"
+                    >
+                      <option value="saas">SaaS Platform</option>
+                      <option value="web_app">Web Uygulaması</option>
+                      <option value="mobile_app">Mobil Uygulama</option>
+                      <option value="media">Medya Platformu</option>
+                      <option value="hybrid">Hibrit Çözüm</option>
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                      <Layers className="w-4 h-4" />
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex gap-3 mt-6">
-                <Button variant="ghost" onClick={() => setShowNewProjectModal(false)} className="flex-1 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 border border-gray-700">
+              <div className="flex gap-4 mt-8">
+                <Button variant="ghost" onClick={() => setShowNewProjectModal(false)} className="flex-1 bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 rounded-xl py-3">
                   İptal
                 </Button>
-                <Button onClick={handleCreateProject} className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-lg shadow-blue-500/25">
+                <Button onClick={handleCreateProject} className="flex-1 bg-primary-gradient hover:shadow-lg hover:shadow-indigo-500/25 rounded-xl py-3">
                   Oluştur
                 </Button>
               </div>

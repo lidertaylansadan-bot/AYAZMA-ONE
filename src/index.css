@@ -21,7 +21,24 @@
       sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    @apply bg-premium-bg text-premium-text min-h-screen;
+    @apply bg-premium-bg text-premium-text min-h-screen selection:bg-indigo-500/30 selection:text-indigo-200;
+    background-image:
+      radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08), transparent 25%),
+      radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 25%);
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-premium-bg;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-700 rounded-full hover:bg-slate-600 transition-colors;
   }
 
   /* Typography */
@@ -31,7 +48,7 @@
   h4,
   h5,
   h6 {
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
     font-weight: 700;
   }
 
@@ -50,14 +67,18 @@
 
 @layer components {
   .glass-panel {
-    @apply bg-glass border border-glass-border shadow-glass backdrop-blur-md transition-all duration-300;
+    @apply bg-glass backdrop-blur-xl border border-glass-border shadow-glass transition-all duration-300;
   }
 
   .glass-panel:hover {
-    @apply border-blue-400/30 shadow-glass-hover;
+    @apply border-glass-hover shadow-glass-hover;
   }
 
   .premium-gradient-text {
-    @apply bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 animate-pulse-slow;
+  }
+
+  .premium-card {
+    @apply glass-panel rounded-2xl p-6 hover:-translate-y-1;
   }
 }
