@@ -10,12 +10,18 @@ CREATE TABLE IF NOT EXISTS project_ai_settings (
 );
 
 ALTER TABLE project_ai_settings ENABLE ROW LEVEL SECURITY;
-CREATE POLICY IF NOT EXISTS project_ai_settings_select_owner ON project_ai_settings FOR SELECT USING (
+
+DROP POLICY IF EXISTS project_ai_settings_select_owner ON project_ai_settings;
+CREATE POLICY project_ai_settings_select_owner ON project_ai_settings FOR SELECT USING (
   EXISTS (SELECT 1 FROM public.projects p WHERE p.id = project_id AND p.owner_id = auth.uid())
 );
-CREATE POLICY IF NOT EXISTS project_ai_settings_upsert_owner ON project_ai_settings FOR INSERT WITH CHECK (
+
+DROP POLICY IF EXISTS project_ai_settings_upsert_owner ON project_ai_settings;
+CREATE POLICY project_ai_settings_upsert_owner ON project_ai_settings FOR INSERT WITH CHECK (
   EXISTS (SELECT 1 FROM public.projects p WHERE p.id = project_id AND p.owner_id = auth.uid())
 );
-CREATE POLICY IF NOT EXISTS project_ai_settings_update_owner ON project_ai_settings FOR UPDATE USING (
+
+DROP POLICY IF EXISTS project_ai_settings_update_owner ON project_ai_settings;
+CREATE POLICY project_ai_settings_update_owner ON project_ai_settings FOR UPDATE USING (
   EXISTS (SELECT 1 FROM public.projects p WHERE p.id = project_id AND p.owner_id = auth.uid())
 );

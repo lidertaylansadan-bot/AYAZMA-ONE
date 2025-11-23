@@ -25,15 +25,23 @@ ALTER TABLE agent_runs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE agent_artifacts ENABLE ROW LEVEL SECURITY;
 
 -- RLS policies: only owner (user_id) can read/insert their runs
-CREATE POLICY IF NOT EXISTS agent_runs_select_own ON agent_runs FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY IF NOT EXISTS agent_runs_insert_own ON agent_runs FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY IF NOT EXISTS agent_runs_update_own ON agent_runs FOR UPDATE USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS agent_runs_select_own ON agent_runs;
+CREATE POLICY agent_runs_select_own ON agent_runs FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS agent_runs_insert_own ON agent_runs;
+CREATE POLICY agent_runs_insert_own ON agent_runs FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS agent_runs_update_own ON agent_runs;
+CREATE POLICY agent_runs_update_own ON agent_runs FOR UPDATE USING (auth.uid() = user_id);
 
 -- artifacts policy via run owner
-CREATE POLICY IF NOT EXISTS agent_artifacts_select_own ON agent_artifacts FOR SELECT USING (
+DROP POLICY IF EXISTS agent_artifacts_select_own ON agent_artifacts;
+CREATE POLICY agent_artifacts_select_own ON agent_artifacts FOR SELECT USING (
   EXISTS (SELECT 1 FROM agent_runs r WHERE r.id = run_id AND r.user_id = auth.uid())
 );
-CREATE POLICY IF NOT EXISTS agent_artifacts_insert_own ON agent_artifacts FOR INSERT WITH CHECK (
+
+DROP POLICY IF EXISTS agent_artifacts_insert_own ON agent_artifacts;
+CREATE POLICY agent_artifacts_insert_own ON agent_artifacts FOR INSERT WITH CHECK (
   EXISTS (SELECT 1 FROM agent_runs r WHERE r.id = run_id AND r.user_id = auth.uid())
 );
 

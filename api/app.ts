@@ -67,11 +67,8 @@ app.use('/api/cockpit', cockpitRoutes)
 app.use('/api/tasks', tasksRoutes)
 app.use('/api', contentRoutes)
 
-// Swagger UI - Temporarily disabled due to OpenAPI generator issues
-// The generator crashes on startup - needs investigation of zod-to-openapi configuration
-// import swaggerUi from 'swagger-ui-express'
-// import { generateOpenApiSpec } from './core/openapi/generator.js'
-// app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(generateOpenApiSpec()))
+import compressionRoutes from './routes/compression.js';
+app.use('/api/compression', compressionRoutes);
 
 /**
  * health

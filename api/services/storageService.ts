@@ -1,7 +1,7 @@
 import { supabase } from '../config/supabase'
 
 export async function ensureBuckets() {
-  const buckets = ['project-assets', 'content-media']
+  const buckets = ['project-assets', 'content-media', 'project-documents']
   for (const name of buckets) {
     const { data: bucket } = await supabase.storage.getBucket(name)
     if (!bucket) {
@@ -20,9 +20,9 @@ export function validateUpload({
   size: number
   mimeType: string
 }) {
-  const maxSize = 50 * 1024 * 1024
+  const maxSize = 20 * 1024 * 1024 // Increased to 20MB for documents
   if (size > maxSize) {
-    throw new Error('File too large (max 50MB)')
+    throw new Error('File too large (max 20MB)')
   }
   const allowed = [
     'image/png',
@@ -30,7 +30,10 @@ export function validateUpload({
     'image/webp',
     'video/mp4',
     'application/pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/msword',
     'text/plain',
+    'text/markdown',
   ]
   if (!allowed.includes(mimeType)) {
     throw new Error('Unsupported file type')

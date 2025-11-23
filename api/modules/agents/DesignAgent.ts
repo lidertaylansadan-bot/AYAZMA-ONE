@@ -5,7 +5,10 @@ import { supabase } from '../../config/supabase.js'
 
 export class DesignSpecAgent extends BaseAgent {
   constructor() {
-    super('design_spec', 'Generates high-level app spec from project info and wizard answers')
+    super('design_spec', 'Generates high-level app spec from project info and wizard answers', {
+      needsContext: true,
+      contextTaskType: 'design_spec',
+    })
   }
 
   async run(context: AgentContext): Promise<{ artifacts: AgentArtifactPayload[] }> {
@@ -17,10 +20,10 @@ export class DesignSpecAgent extends BaseAgent {
         .eq('id', context.projectId)
         .single()
       if (data) {
-        projectInfo = `Project: ${data.name}\nSector: ${data.sector}\nType: ${data.project_type}\nDescription: ${data.description || ''}`
+        projectInfo = `Project: ${data.name}\\nSector: ${data.sector}\\nType: ${data.project_type}\\nDescription: ${data.description || ''}`
       }
     }
-    const wizardInfo = context.wizardAnswers ? `\nWizard Answers:\n${JSON.stringify(context.wizardAnswers, null, 2)}` : ''
+    const wizardInfo = context.wizardAnswers ? `\\nWizard Answers:\\n${JSON.stringify(context.wizardAnswers, null, 2)}` : ''
     const prompt = `You are an expert product designer. Create a concise, actionable high-level app spec (markdown) for the following:
 ${projectInfo}${wizardInfo}
 Include sections: Overview, Target Users, Core Features, Data Entities, Workflows, Monetization, Next Steps.`
@@ -28,7 +31,7 @@ Include sections: Overview, Target Users, Core Features, Data Entities, Workflow
     const ai = await routeAiRequest({ taskType: 'app_spec_suggestion', prompt, userId: context.userId, projectId: context.projectId, agentRunId: context.runId })
     const artifacts: AgentArtifactPayload[] = [
       { type: 'plan', title: 'High-Level App Spec', content: ai.text, meta: { provider: ai.provider, model: ai.model } },
-      { type: 'log', title: 'AI Call Log', content: `Provider: ${ai.provider}\nModel: ${ai.model}`, meta: { } },
+      { type: 'log', title: 'AI Call Log', content: `Provider: ${ai.provider}\\nModel: ${ai.model}`, meta: {} },
     ]
     return { artifacts }
   }

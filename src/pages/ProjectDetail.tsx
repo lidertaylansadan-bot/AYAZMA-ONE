@@ -7,15 +7,19 @@ import Spinner from '../components/ui/Spinner'
 import Alert from '../components/ui/Alert'
 import Input from '../components/ui/Input'
 import Select from '../components/ui/Select'
+import DocumentsTab from '../components/project/DocumentsTab'
 import { getProject, getProjectAiSettings, updateProjectAiSettings, type ProjectAiSettings } from '../api/projects'
 import { getProjectAiUsageSummary, type ProjectAiUsageSummary } from '../api/telemetry'
 import { getProjectOptimizationSuggestion, applyProjectOptimization } from '../api/optimizer'
 import { startAgentRun } from '../api/agents'
 import type { Project } from '../../shared/types'
 
+type TabType = 'overview' | 'documents' | 'settings'
+
 export default function ProjectDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const [activeTab, setActiveTab] = useState<TabType>('overview')
   const [project, setProject] = useState<Project | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -59,14 +63,12 @@ export default function ProjectDetail() {
       try {
         const res = await getProjectAiSettings(project.id)
         if ((res as any).success === false) {
-          // Varsayılanlarla başla
           setAiSettings({ provider: 'openai', model: 'gpt-4o-mini', costPreference: 'balanced', latencyPreference: 'balanced' })
         } else {
           const data = (res as any).data || res
           setAiSettings(data as ProjectAiSettings)
         }
       } catch (_e) {
-        // Varsayılanlarla başla
         setAiSettings({ provider: 'openai', model: 'gpt-4o-mini', costPreference: 'balanced', latencyPreference: 'balanced' })
       } finally {
         setSettingsLoading(false)
@@ -155,7 +157,6 @@ export default function ProjectDetail() {
       const data = (res as any).data || res
       const suggestion = data?.suggestion || null
       setOptSuggestion(suggestion)
-      // Ayarları güncelle
       if (suggestion?.suggested) {
         const updated = await updateProjectAiSettings(project.id, {
           provider: suggestion.suggested.provider,
@@ -173,12 +174,19 @@ export default function ProjectDetail() {
     }
   }
 
+  const tabs: { id: TabType; label: string }[] = [
+    { id: 'overview', label: 'Genel Bakış' },
+    { id: 'documents', label: 'Dökümanlar' },
+    { id: 'settings', label: 'Ayarlar' },
+  ]
+
   return (
     <DashboardLayout title="Proje Detayı">
       {loading && <Spinner />}
       {error && <Alert variant="error">{error}</Alert>}
       {project && (
         <div className="space-y-6">
+          {/* Project Header */}
           <Card>
             <div className="text-2xl font-semibold text-gray-900">{project.name}</div>
             <div className="text-gray-700 mt-2">{project.description || 'Açıklama yok'}</div>
@@ -189,147 +197,152 @@ export default function ProjectDetail() {
             </div>
           </Card>
 
-          <Card>
-            <div className="flex items-center justify-between mb-4">
-              <div className="text-lg font-semibold">Agents</div>
-              <Button onClick={() => navigate(`/projects/${project.id}/content`)}>İçerik Planlayıcı’ya Git</Button>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Button onClick={() => runAgent('design_spec')} disabled={starting}>Run Design Spec Agent</Button>
-              <Button onClick={() => runAgent('workflow_designer')} disabled={starting}>Run Workflow Agent</Button>
-              <Button onClick={() => runAgent('content_strategist')} disabled={starting}>Run Content Agent</Button>
-            </div>
-          </Card>
-
-          <Card>
-            <div className="text-lg font-semibold mb-4">AI Ayarları</div>
-            {settingsLoading && <Spinner />}
-            {settingsError && <Alert variant="error">{settingsError}</Alert>}
-            {saveSuccess && <Alert variant="success">{saveSuccess}</Alert>}
-            {aiSettings && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  label="Sağlayıcı"
-                  value={aiSettings.provider}
-                  onChange={(e) => setAiSettings({ ...aiSettings, provider: e.target.value })}
-                  placeholder="openai"
-                />
-                <Input
-                  label="Model"
-                  value={aiSettings.model}
-                  onChange={(e) => setAiSettings({ ...aiSettings, model: e.target.value })}
-                  placeholder="gpt-4o-mini"
-                />
-                <Select
-                  label="Maliyet Tercihi"
-                  value={aiSettings.costPreference}
-                  onChange={(e) => setAiSettings({ ...aiSettings, costPreference: e.target.value as ProjectAiSettings['costPreference'] })}
+          {/* Tab Navigation */}
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`
+                    py-4 px-1 border-b-2 font-medium text-sm
+                    ${activeTab === tab.id
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }
+                  `}
                 >
-                  <option value="low">Düşük</option>
-                  <option value="balanced">Dengeli</option>
-                  <option value="best_quality">En iyi kalite</option>
-                </Select>
-                <Select
-                  label="Gecikme Tercihi"
-                  value={aiSettings.latencyPreference}
-                  onChange={(e) => setAiSettings({ ...aiSettings, latencyPreference: e.target.value as ProjectAiSettings['latencyPreference'] })}
-                >
-                  <option value="low">Düşük</option>
-                  <option value="balanced">Dengeli</option>
-                  <option value="ok_with_slow">Yavaş olabilir</option>
-                </Select>
-                <div className="md:col-span-2 flex justify-end">
-                  <Button onClick={saveAiSettings} disabled={savingSettings}>Kaydet</Button>
-                </div>
-              </div>
-            )}
-          </Card>
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+          </div>
 
-          <Card>
-            <div className="text-lg font-semibold mb-4">AI Kullanım Özeti</div>
-            {usageLoading && <Spinner />}
-            {usageError && <Alert variant="error">{usageError}</Alert>}
-            {usageSummary && (
-              <div className="space-y-3 text-sm text-gray-800">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Card>
-                    <div className="text-gray-500">Toplam Çağrı</div>
-                    <div className="text-xl font-semibold">{usageSummary.totalCalls}</div>
-                  </Card>
-                  <Card>
-                    <div className="text-gray-500">Toplam Token</div>
-                    <div className="text-xl font-semibold">{usageSummary.totalTokens}</div>
-                  </Card>
-                  <Card>
-                    <div className="text-gray-500">Ort. Gecikme</div>
-                    <div className="text-xl font-semibold">{usageSummary.avgLatencyMs ?? '-'}</div>
-                  </Card>
+          {/* Tab Content */}
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
+              <Card>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-lg font-semibold">Agents</div>
+                  <Button onClick={() => navigate(`/projects/${project.id}/content`)}>İçerik Planlayıcı'ya Git</Button>
                 </div>
-                <div>
-                  <div className="text-gray-600 mb-2">Görev Türüne Göre</div>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full">
-                      <thead>
-                        <tr className="text-left text-gray-500">
-                          <th className="px-2 py-1">Task</th>
-                          <th className="px-2 py-1">Çağrı</th>
-                          <th className="px-2 py-1">Token</th>
-                          <th className="px-2 py-1">Ort. Gecikme</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {usageSummary.byTaskType.map((t) => (
-                          <tr key={`${t.taskType}-${t.model}`} className="border-t">
-                            <td className="px-2 py-1">{t.taskType}</td>
-                            <td className="px-2 py-1">{t.totalCalls}</td>
-                            <td className="px-2 py-1">{t.totalTokens}</td>
-                            <td className="px-2 py-1">{t.avgLatencyMs ?? '-'}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                <div className="flex flex-wrap gap-3">
+                  <Button onClick={() => runAgent('design_spec')} disabled={starting}>Run Design Spec Agent</Button>
+                  <Button onClick={() => runAgent('workflow_designer')} disabled={starting}>Run Workflow Agent</Button>
+                  <Button onClick={() => runAgent('content_strategist')} disabled={starting}>Run Content Agent</Button>
+                </div>
+              </Card>
+
+              <Card>
+                <div className="text-lg font-semibold mb-4">AI Kullanım Özeti</div>
+                {usageLoading && <Spinner />}
+                {usageError && <Alert variant="error">{usageError}</Alert>}
+                {usageSummary && (
+                  <div className="space-y-3 text-sm text-gray-800">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Card>
+                        <div className="text-gray-500">Toplam Çağrı</div>
+                        <div className="text-xl font-semibold">{usageSummary.totalCalls}</div>
+                      </Card>
+                      <Card>
+                        <div className="text-gray-500">Toplam Token</div>
+                        <div className="text-xl font-semibold">{usageSummary.totalTokens}</div>
+                      </Card>
+                      <Card>
+                        <div className="text-gray-500">Ort. Gecikme</div>
+                        <div className="text-xl font-semibold">{usageSummary.avgLatencyMs ?? '-'}</div>
+                      </Card>
+                    </div>
                   </div>
-                </div>
-              </div>
-            )}
-          </Card>
-
-          <Card>
-            <div className="text-lg font-semibold mb-4">AI Otomatik Optimizasyon</div>
-            {optError && <Alert variant="error">{optError}</Alert>}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-              <Select label="Hedef" value={optGoal} onChange={(e) => setOptGoal(e.target.value as any)}>
-                <option value="min_cost">Maliyet Odaklı</option>
-                <option value="min_latency">Hız Odaklı</option>
-                <option value="balanced">Dengeli</option>
-              </Select>
-              <Button onClick={fetchOptimization} disabled={optLoading}>Öneri Al</Button>
-              <Button onClick={applyOptimization} disabled={optLoading}>Öneriyi Uygula</Button>
+                )}
+              </Card>
             </div>
-            {optLoading && <Spinner />}
-            {optSuggestion && (
-              <div className="mt-4 text-sm text-gray-800">
-                <div className="text-gray-600 mb-2">Rationale:</div>
-                <div className="mb-3">{optSuggestion.rationale}</div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Card>
-                    <div className="text-gray-500">Mevcut</div>
-                    <div>Sağlayıcı: {optSuggestion.current.provider}</div>
-                    <div>Model: {optSuggestion.current.model}</div>
-                    <div>Maliyet: {optSuggestion.current.costPreference}</div>
-                    <div>Gecikme: {optSuggestion.current.latencyPreference}</div>
-                  </Card>
-                  <Card>
-                    <div className="text-gray-500">Önerilen</div>
-                    <div>Sağlayıcı: {optSuggestion.suggested.provider}</div>
-                    <div>Model: {optSuggestion.suggested.model}</div>
-                    <div>Maliyet: {optSuggestion.suggested.costPreference}</div>
-                    <div>Gecikme: {optSuggestion.suggested.latencyPreference}</div>
-                  </Card>
+          )}
+
+          {activeTab === 'documents' && (
+            <DocumentsTab projectId={project.id} />
+          )}
+
+          {activeTab === 'settings' && (
+            <div className="space-y-6">
+              <Card>
+                <div className="text-lg font-semibold mb-4">AI Ayarları</div>
+                {settingsLoading && <Spinner />}
+                {settingsError && <Alert variant="error">{settingsError}</Alert>}
+                {saveSuccess && <Alert variant="success">{saveSuccess}</Alert>}
+                {aiSettings && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input
+                      label="Sağlayıcı"
+                      value={aiSettings.provider}
+                      onChange={(e) => setAiSettings({ ...aiSettings, provider: e.target.value })}
+                      placeholder="openai"
+                    />
+                    <Input
+                      label="Model"
+                      value={aiSettings.model}
+                      onChange={(e) => setAiSettings({ ...aiSettings, model: e.target.value })}
+                      placeholder="gpt-4o-mini"
+                    />
+                    <Select
+                      label="Maliyet Tercihi"
+                      value={aiSettings.costPreference}
+                      onChange={(e) => setAiSettings({ ...aiSettings, costPreference: e.target.value as ProjectAiSettings['costPreference'] })}
+                    >
+                      <option value="low">Düşük</option>
+                      <option value="balanced">Dengeli</option>
+                      <option value="best_quality">En iyi kalite</option>
+                    </Select>
+                    <Select
+                      label="Gecikme Tercihi"
+                      value={aiSettings.latencyPreference}
+                      onChange={(e) => setAiSettings({ ...aiSettings, latencyPreference: e.target.value as ProjectAiSettings['latencyPreference'] })}
+                    >
+                      <option value="low">Düşük</option>
+                      <option value="balanced">Dengeli</option>
+                      <option value="ok_with_slow">Yavaş olabilir</option>
+                    </Select>
+                    <div className="md:col-span-2 flex justify-end">
+                      <Button onClick={saveAiSettings} disabled={savingSettings}>Kaydet</Button>
+                    </div>
+                  </div>
+                )}
+              </Card>
+
+              <Card>
+                <div className="text-lg font-semibold mb-4">AI Otomatik Optimizasyon</div>
+                {optError && <Alert variant="error">{optError}</Alert>}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                  <Select label="Hedef" value={optGoal} onChange={(e) => setOptGoal(e.target.value as any)}>
+                    <option value="min_cost">Maliyet Odaklı</option>
+                    <option value="min_latency">Hız Odaklı</option>
+                    <option value="balanced">Dengeli</option>
+                  </Select>
+                  <Button onClick={fetchOptimization} disabled={optLoading}>Öneri Al</Button>
+                  <Button onClick={applyOptimization} disabled={optLoading}>Öneriyi Uygula</Button>
                 </div>
-              </div>
-            )}
-          </Card>
+                {optLoading && <Spinner />}
+                {optSuggestion && (
+                  <div className="mt-4 text-sm text-gray-800">
+                    <div className="text-gray-600 mb-2">Rationale:</div>
+                    <div className="mb-3">{optSuggestion.rationale}</div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Card>
+                        <div className="text-gray-500">Mevcut</div>
+                        <div>Sağlayıcı: {optSuggestion.current.provider}</div>
+                        <div>Model: {optSuggestion.current.model}</div>
+                      </Card>
+                      <Card>
+                        <div className="text-gray-500">Önerilen</div>
+                        <div>Sağlayıcı: {optSuggestion.suggested.provider}</div>
+                        <div>Model: {optSuggestion.suggested.model}</div>
+                      </Card>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            </div>
+          )}
         </div>
       )}
     </DashboardLayout>

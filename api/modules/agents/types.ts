@@ -1,4 +1,4 @@
-export type AgentName = 'design_spec' | 'workflow_designer' | 'content_strategist' | 'orchestrator'
+export type AgentName = 'design_spec' | 'workflow_designer' | 'content_strategist' | 'orchestrator' | 'context_engineer'
 
 export type AgentStatus = 'pending' | 'running' | 'succeeded' | 'failed'
 

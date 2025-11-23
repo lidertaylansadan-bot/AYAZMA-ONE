@@ -4,6 +4,7 @@ import DashboardLayout from '../components/layout/DashboardLayout'
 import Card from '../components/ui/Card'
 import Spinner from '../components/ui/Spinner'
 import Alert from '../components/ui/Alert'
+import ContextVisualization from '../components/agent/ContextVisualization'
 import { getAgentRun, type AgentRunDetail } from '../api/agents'
 import ReactMarkdown from 'react-markdown'
 import { motion } from 'framer-motion'
@@ -30,6 +31,15 @@ export default function AgentRunDetail() {
     }
     if (id) load()
   }, [id])
+
+  // Extract context from artifacts if available
+  const contextSlices = detail?.artifacts
+    ?.find((a) => a.meta?.contextEngineer)
+    ?.meta?.contextEngineer?.contextSlices
+
+  const totalTokens = detail?.artifacts
+    ?.find((a) => a.meta?.contextEngineer)
+    ?.meta?.contextEngineer?.metadata?.totalTokens
 
   return (
     <DashboardLayout title="Agent Run">
@@ -66,6 +76,18 @@ export default function AgentRunDetail() {
               </div>
             </div>
           </Card>
+
+          {/* Context Visualization */}
+          {(contextSlices || detail.contextUsages) && (
+            <div>
+              <h3 className="text-xl font-bold text-white mb-4">Context Kullanımı</h3>
+              <ContextVisualization
+                contextSlices={contextSlices}
+                contextUsages={detail.contextUsages}
+                totalTokens={totalTokens}
+              />
+            </div>
+          )}
 
           <div className="space-y-4">
             <h3 className="text-xl font-bold text-white mb-4">Artifacts</h3>

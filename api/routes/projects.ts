@@ -6,6 +6,7 @@ import { validateBody } from '../middleware/validate.js'
 import { createProjectSchema, updateProjectSchema } from '../modules/projects/dto.js'
 import { getProjectAiSettings, upsertProjectAiSettings } from '../modules/ai/settingsController.js'
 import { z } from 'zod'
+import documentRoutes from '../modules/documents/routes.js'
 
 const router = Router();
 
@@ -139,5 +140,8 @@ const aiSettingsSchema = z.object({
 router.put('/:id/ai-settings', authenticateToken, validateBody(aiSettingsSchema), async (req, res, next) => {
   try { await upsertProjectAiSettings(req as any, res as any, next as any) } catch (e) { next(e) }
 })
+
+// Mount document routes
+router.use('/:projectId/documents', documentRoutes)
 
 export default router;

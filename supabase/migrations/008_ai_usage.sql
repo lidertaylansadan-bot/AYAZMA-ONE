@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS ai_usage_logs (
 );
 
 ALTER TABLE ai_usage_logs ENABLE ROW LEVEL SECURITY;
-CREATE POLICY IF NOT EXISTS ai_usage_select_own ON ai_usage_logs FOR SELECT USING (user_id = auth.uid());
+DROP POLICY IF EXISTS ai_usage_select_own ON ai_usage_logs;
+CREATE POLICY ai_usage_select_own ON ai_usage_logs FOR SELECT USING (user_id = auth.uid());
 CREATE INDEX IF NOT EXISTS idx_ai_usage_user_id ON ai_usage_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_ai_usage_project_id ON ai_usage_logs(project_id);
 CREATE INDEX IF NOT EXISTS idx_ai_usage_created_at ON ai_usage_logs(created_at DESC);

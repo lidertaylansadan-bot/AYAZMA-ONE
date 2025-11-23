@@ -5,7 +5,10 @@ import { supabase } from '../../config/supabase.js'
 
 export class WorkflowDesignerAgent extends BaseAgent {
   constructor() {
-    super('workflow_designer', 'Designs key workflows and automations for a project')
+    super('workflow_designer', 'Designs key workflows and automations for a project', {
+      needsContext: true,
+      contextTaskType: 'workflow_design',
+    })
   }
 
   async run(context: AgentContext): Promise<{ artifacts: AgentArtifactPayload[] }> {
@@ -17,12 +20,12 @@ export class WorkflowDesignerAgent extends BaseAgent {
         .eq('id', context.projectId)
         .single()
       if (data) {
-        projectInfo = `Project: ${data.name}\nSector: ${data.sector}\nType: ${data.project_type}\nDescription: ${data.description || ''}`
+        projectInfo = `Project: ${data.name}\\nSector: ${data.sector}\\nType: ${data.project_type}\\nDescription: ${data.description || ''}`
       }
     }
-    const wizardInfo = context.wizardAnswers ? `\nWizard Answers:\n${JSON.stringify(context.wizardAnswers, null, 2)}` : ''
+    const wizardInfo = context.wizardAnswers ? `\\nWizard Answers:\\n${JSON.stringify(context.wizardAnswers, null, 2)}` : ''
     const prompt = `You are an expert SaaS workflow and automation designer. For this project, design the key workflows and automations.
-Context:\n${projectInfo}${wizardInfo}
+Context:\\n${projectInfo}${wizardInfo}
 Include sections: Events/Triggers, Actions, Integrations (email, webhooks, CRM, billing), Error handling, Monitoring suggestions, and Implementation tasks as bullet list.`
 
     const ai = await routeAiRequest({ taskType: 'workflow_suggestion', prompt, userId: context.userId, projectId: context.projectId, agentRunId: context.runId })
