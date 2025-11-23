@@ -3,9 +3,12 @@
  * Defines interfaces for context gathering and management
  */
 
+export type ContextStrategy = 'raw_only' | 'compressed_only' | 'hybrid'
+
 export type ContextSourceType =
     | 'project_meta'
     | 'document'
+    | 'compressed_segment'
     | 'agent_history'
     | 'user_input'
     | 'system'
@@ -26,6 +29,8 @@ export interface ContextSlice {
         documentTitle?: string
         chunkId?: string
         chunkIndex?: number
+        segmentId?: string
+        segmentIndex?: number
         agentRunId?: string
         similarity?: number
     }
@@ -37,6 +42,7 @@ export interface ContextEngineerInput {
     userGoal?: string
     maxTokens?: number
     includeHistory?: boolean
+    contextStrategy?: ContextStrategy
 }
 
 export interface ContextEngineerOutput {

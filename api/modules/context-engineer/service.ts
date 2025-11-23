@@ -29,10 +29,11 @@ export class ContextEngineerService {
             userGoal = '',
             maxTokens = this.MAX_CONTEXT_TOKENS,
             includeHistory = false,
+            contextStrategy = 'raw_only',
         } = input
 
         try {
-            logger.info({ projectId, taskType }, 'Building context')
+            logger.info({ projectId, taskType, contextStrategy }, 'Building context')
 
             const contextSlices: ContextSlice[] = []
 
@@ -40,13 +41,23 @@ export class ContextEngineerService {
             const projectMeta = await this.getProjectMetadata(projectId)
             contextSlices.push(...this.createProjectMetaSlices(projectMeta))
 
-            // 2. Perform RAG search if user goal provided
-            if (userGoal && userGoal.trim().length > 0) {
-                const ragResults = await ragService.search(projectId, userGoal, {
-                    limit: 5,
-                    minSimilarity: 0.7,
-                })
-                contextSlices.push(...this.createDocumentSlices(ragResults))
+            // 2. Gather Content based on Strategy
+
+            // A. Raw Context (RAG)
+            if (contextStrategy === 'raw_only' || contextStrategy === 'hybrid') {
+                if (userGoal && userGoal.trim().length > 0) {
+                    const ragResults = await ragService.search(projectId, userGoal, {
+                        limit: 10, // Increase limit for hybrid to allow more selection
+                        minSimilarity: 0.7,
+                    })
+                    contextSlices.push(...this.createDocumentSlices(ragResults))
+                }
+            }
+
+            // B. Compressed Context (Global Overview)
+            if (contextStrategy === 'compressed_only' || contextStrategy === 'hybrid') {
+                const segments = await this.getCompressedSegments(projectId)
+                contextSlices.push(...this.createCompressedSlices(segments))
             }
 
             // 3. (Optional) Include agent history
@@ -89,6 +100,7 @@ export class ContextEngineerService {
                     taskType,
                     sliceCount: prioritizedSlices.length,
                     totalTokens,
+                    sources,
                 },
                 'Context built successfully'
             )
@@ -151,12 +163,13 @@ export class ContextEngineerService {
     /**
      * Create context slices from RAG search results
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private createDocumentSlices(ragResults: any[]): ContextSlice[] {
-        return ragResults.map((result, index) => ({
+        return ragResults.map((result) => ({
             id: `doc_${result.chunkId}`,
             type: 'document' as ContextSourceType,
             content: result.text,
-            weight: result.similarity * 0.8, // Scale by similarity
+            weight: result.similarity * 0.85, // Slightly higher weight to prioritize specific hits
             sourceMeta: {
                 documentId: result.documentId,
                 documentTitle: result.documentTitle,
@@ -168,11 +181,67 @@ export class ContextEngineerService {
     }
 
     /**
+     * Fetch compressed segments for a project
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private async getCompressedSegments(projectId: string): Promise<any[]> {
+        const { data, error } = await supabase
+            .from('document_compressed_segments')
+            .select(`
+                id,
+                segment_index,
+                payload,
+                document_compressed_views!inner(
+                    document_id,
+                    project_documents!inner(project_id)
+                )
+            `)
+            .eq('document_compressed_views.project_documents.project_id', projectId)
+            .order('created_at', { ascending: false })
+            .limit(20) // Limit to recent segments to avoid overload
+
+        if (error) {
+            logger.warn({ err: error }, 'Failed to fetch compressed segments')
+            return []
+        }
+        return data || []
+    }
+
+    /**
+     * Create context slices from compressed segments
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private createCompressedSlices(segments: any[]): ContextSlice[] {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return segments.map((seg: any) => {
+            // Extract summary from payload
+            const payload = seg.payload
+            const content = payload.summary ||
+                (Array.isArray(payload.keyPoints) ? payload.keyPoints.join('\n') : '') ||
+                JSON.stringify(payload)
+
+            return {
+                id: `seg_${seg.id}`,
+                type: 'compressed_segment' as ContextSourceType,
+                content: `[Compressed Summary]\n${content}`,
+                weight: 0.5, // Medium weight for global context
+                sourceMeta: {
+                    segmentId: seg.id,
+                    segmentIndex: seg.segment_index,
+                    documentId: seg.document_compressed_views.document_id,
+                },
+            }
+        })
+    }
+
+    /**
      * Get agent history (optional, for future enhancement)
      */
     private async getAgentHistory(
-        projectId: string,
-        taskType: string
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        _projectId: string,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        _taskType: string
     ): Promise<ContextSlice[]> {
         // For MVP, return empty array
         // In future, fetch recent successful agent runs

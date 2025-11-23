@@ -7,8 +7,13 @@ import { Worker } from 'bullmq';
 import { compressionQueue } from './compressionQueue';
 import { redisConnection } from '../config/redis';
 import { logger } from '../core/logger';
-import { TextOnlyCompressionService } from '../optical-compression/TextOnlyCompressionService';
+import { TextOnlyCompressionService } from '../modules/optical-compression/TextOnlyCompressionService';
 import { supabase } from '../config/supabase';
+import {
+    emitCompressionStarted,
+    emitCompressionCompleted,
+    emitCompressionFailed
+} from '../core/telemetry/events.js';
 
 let workerInstance: Worker | null = null;
 
@@ -31,49 +36,122 @@ export function startCompressionWorker(): Worker {
         'compression',
         async (job) => {
             const { documentId, projectId, userId, strategy } = job.data;
-            logger.info('Processing compression job', { jobId: job.id, documentId, strategy });
+            const startTime = Date.now();
 
-            // 1️⃣ Load raw chunks for the document
-            const { data: rawChunks, error: fetchErr } = await supabase
-                .from('project_document_chunks')
-                .select('id, text')
-                .eq('document_id', documentId);
+            logger.info({ jobId: job.id, documentId, strategy }, 'Processing compression job');
 
-            if (fetchErr) {
-                throw new Error(`Failed to fetch document chunks: ${fetchErr.message}`);
+            // Emit telemetry: compression started
+            await emitCompressionStarted(documentId, projectId, userId, strategy);
+
+            try {
+                // 1️⃣ Load raw chunks for the document
+                const { data: rawChunks, error: fetchErr } = await supabase
+                    .from('project_document_chunks')
+                    .select('id, text, page_number')
+                    .eq('document_id', documentId)
+                    .order('chunk_index', { ascending: true });
+
+                if (fetchErr) {
+                    throw new Error(`Failed to fetch document chunks: ${fetchErr.message}`);
+                }
+
+                if (!rawChunks || rawChunks.length === 0) {
+                    logger.warn({ documentId }, 'No chunks found for document');
+                    await emitCompressionFailed(documentId, projectId, userId, 'No chunks found for document');
+                    return {
+                        viewId: '',
+                        rawTokenCount: 0,
+                        compressedTokenCount: 0,
+                        tokenSavingEstimate: 0,
+                        processingTimeMs: 0,
+                    };
+                }
+
+                // Map to DocumentChunk interface
+                const chunks = rawChunks.map((c) => ({
+                    id: c.id,
+                    text: c.text,
+                    pageNumber: c.page_number,
+                }));
+
+                // 2️⃣ Run compression
+                const result = await service.compress({
+                    documentId,
+                    chunks,
+                    strategy: strategy as any, // Cast to avoid type mismatch if string vs enum
+                });
+
+                // 3️⃣ Store compressed view record
+                const { data: viewData, error: insertViewErr } = await supabase
+                    .from('document_compressed_views')
+                    .insert({
+                        document_id: documentId,
+                        project_id: projectId,
+                        compression_strategy: result.strategy,
+                        model_name: result.modelName,
+                        raw_token_count: result.rawTokenCount,
+                        compressed_token_count: result.compressedTokenCount,
+                        token_saving_estimate: result.tokenSavingEstimate,
+                        processing_time_ms: result.processingTimeMs,
+                        metadata: result.metadata,
+                        created_by: userId,
+                    })
+                    .select('id')
+                    .single();
+
+                if (insertViewErr || !viewData) {
+                    throw new Error(`Failed to insert compressed view: ${insertViewErr?.message}`);
+                }
+
+                const viewId = viewData.id;
+
+                // 4️⃣ Store compressed segments
+                if (result.segments.length > 0) {
+                    const segmentsToInsert = result.segments.map((seg: any) => ({
+                        compressed_view_id: viewId,
+                        segment_index: seg.segmentIndex,
+                        segment_type: seg.segmentType,
+                        payload: seg.payload,
+                        source_chunk_ids: seg.sourceChunkIds,
+                        page_numbers: seg.pageNumbers,
+                        estimated_tokens: seg.estimatedTokens,
+                    }));
+
+                    const { error: insertSegmentsErr } = await supabase
+                        .from('document_compressed_segments')
+                        .insert(segmentsToInsert);
+
+                    if (insertSegmentsErr) {
+                        logger.error({ error: insertSegmentsErr, viewId }, 'Failed to insert segments');
+                        throw new Error(`Failed to insert compressed segments: ${insertSegmentsErr.message}`);
+                    }
+                }
+
+                // Emit telemetry: compression completed
+                const processingTimeMs = Date.now() - startTime;
+                await emitCompressionCompleted(documentId, projectId, userId, {
+                    strategy: result.strategy,
+                    modelName: result.modelName,
+                    rawTokens: result.rawTokenCount,
+                    compressedTokens: result.compressedTokenCount,
+                    tokenSavingPercent: result.tokenSavingEstimate,
+                    durationMs: processingTimeMs,
+                    estimatedCost: (result.rawTokenCount / 1000) * 0.001 // Rough estimate
+                });
+
+                return {
+                    viewId,
+                    rawTokenCount: result.rawTokenCount,
+                    compressedTokenCount: result.compressedTokenCount,
+                    tokenSavingEstimate: result.tokenSavingEstimate,
+                    processingTimeMs: result.processingTimeMs,
+                } as import('./compressionQueue').CompressionJobResult;
+            } catch (error) {
+                // Emit telemetry: compression failed
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                await emitCompressionFailed(documentId, projectId, userId, errorMessage);
+                throw error;
             }
-
-            const rawText = rawChunks?.map((c) => c.text).join('\n') ?? '';
-
-            // 2️⃣ Run compression (currently only text‑only)
-            const { viewId, tokenStats, payload } = await service.compress(rawText);
-
-            // 3️⃣ Store compressed view record
-            const { error: insertErr } = await supabase.from('document_compressed_views').insert({
-                id: viewId,
-                document_id: documentId,
-                project_id: projectId,
-                strategy,
-                raw_token_count: tokenStats.raw,
-                compressed_token_count: tokenStats.compressed,
-                token_saving_estimate: tokenStats.saving,
-                processing_time_ms: tokenStats.timeMs,
-                payload,
-            });
-
-            if (insertErr) {
-                throw new Error(`Failed to insert compressed view: ${insertErr.message}`);
-            }
-
-            // TODO: optionally split payload into segments and store in document_compressed_segments
-
-            return {
-                viewId,
-                rawTokenCount: tokenStats.raw,
-                compressedTokenCount: tokenStats.compressed,
-                tokenSavingEstimate: tokenStats.saving,
-                processingTimeMs: tokenStats.timeMs,
-            } as import('./compressionQueue').CompressionJobResult;
         },
         {
             connection: redisConnection,
@@ -82,11 +160,11 @@ export function startCompressionWorker(): Worker {
     );
 
     workerInstance.on('failed', (job, err) => {
-        logger.error('Compression job failed', { jobId: job?.id, error: err?.message });
+        logger.error({ jobId: job?.id, error: err?.message }, 'Compression job failed');
     });
 
     workerInstance.on('completed', (job) => {
-        logger.info('Compression job completed', { jobId: job.id });
+        logger.info({ jobId: job.id }, 'Compression job completed');
     });
 
     logger.info('Compression worker started');

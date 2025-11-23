@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import multer from 'multer'
-import { authMiddleware } from '../../middleware/auth.js'
+import { authenticateToken } from '../../middleware/auth.js'
 import {
     uploadDocumentHandler,
     listDocumentsHandler,
@@ -25,6 +25,11 @@ const upload = multer({
             'application/msword',
             'text/plain',
             'text/markdown',
+            'image/png',
+            'image/jpeg',
+            'image/jpg',
+            'image/tiff',
+            'image/bmp',
         ]
 
         if (allowedMimeTypes.includes(file.mimetype)) {
@@ -36,7 +41,7 @@ const upload = multer({
 })
 
 // All routes require authentication
-router.use(authMiddleware)
+router.use(authenticateToken)
 
 // Document routes
 router.post('/upload', upload.single('file'), uploadDocumentHandler)
