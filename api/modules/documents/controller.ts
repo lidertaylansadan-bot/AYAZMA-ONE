@@ -3,6 +3,7 @@ import { documentService } from './service.js'
 import { documentProcessor } from './processor.js'
 import { AppError } from '../../core/app-error.js'
 import { logger } from '../../core/logger.js'
+import { logAuditEvent } from '../../core/auditLogger.js'
 
 /**
  * Upload a document to a project
@@ -27,6 +28,20 @@ export async function uploadDocumentHandler(req: Request, res: Response) {
             userId,
             req.body.title
         )
+
+        // Audit Log
+        await logAuditEvent({
+            userId,
+            projectId,
+            eventType: 'doc_uploaded',
+            metadata: {
+                documentId: document.id,
+                title: document.title,
+                size: req.file.size,
+                mimeType: req.file.mimetype
+            },
+            req
+        })
 
         // Start processing asynchronously (fire and forget for synchronous MVP)
         // In production, this should use a queue
@@ -139,6 +154,14 @@ export async function deleteDocumentHandler(req: Request, res: Response) {
         }
 
         await documentService.deleteDocument(documentId, userId)
+
+        // Audit Log
+        await logAuditEvent({
+            userId,
+            eventType: 'doc_deleted',
+            metadata: { documentId },
+            req
+        })
 
         res.json({
             success: true,

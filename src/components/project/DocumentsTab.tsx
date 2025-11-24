@@ -3,11 +3,17 @@ import Card from '../ui/Card'
 import Button from '../ui/Button'
 import Spinner from '../ui/Spinner'
 import Alert from '../ui/Alert'
+import CompressionDialog from './CompressionDialog'
+import DocumentDetailsModal from './DocumentDetailsModal'
 import {
     getProjectDocuments,
     uploadDocument,
     deleteDocument,
+    compressDocument,
+    getCompressionDetails,
     type ProjectDocument,
+    type CompressionStrategy,
+    type CompressionDetails,
 } from '../../api/documents'
 
 interface DocumentsTabProps {
@@ -22,6 +28,12 @@ export default function DocumentsTab({ projectId }: DocumentsTabProps) {
     const [uploadError, setUploadError] = useState<string | null>(null)
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [title, setTitle] = useState('')
+
+    // Compression State
+    const [compressDialogDoc, setCompressDialogDoc] = useState<ProjectDocument | null>(null)
+    const [detailsModalOpen, setDetailsModalOpen] = useState(false)
+    const [selectedDetails, setSelectedDetails] = useState<CompressionDetails | null>(null)
+    const [loadingDetails, setLoadingDetails] = useState(false)
 
     useEffect(() => {
         loadDocuments()
@@ -45,7 +57,6 @@ export default function DocumentsTab({ projectId }: DocumentsTabProps) {
         if (file) {
             setSelectedFile(file)
             if (!title) {
-                // Auto-fill title from filename
                 setTitle(file.name.replace(/\.[^/.]+$/, ''))
             }
         }
@@ -79,6 +90,34 @@ export default function DocumentsTab({ projectId }: DocumentsTabProps) {
         }
     }
 
+    const handleCompress = async (
+        strategy: CompressionStrategy,
+        options: { ocrEnabled: boolean }
+    ) => {
+        if (!compressDialogDoc) return
+
+        try {
+            await compressDocument(projectId, compressDialogDoc.id, strategy, options)
+            await loadDocuments() // Refresh to show updated status
+        } catch (e: any) {
+            setError(e?.message || 'Sıkıştırma başlatılamadı')
+        }
+    }
+
+    const handleViewDetails = async (documentId: string) => {
+        setDetailsModalOpen(true)
+        setLoadingDetails(true)
+        setSelectedDetails(null)
+        try {
+            const details = await getCompressionDetails(projectId, documentId)
+            setSelectedDetails(details)
+        } catch (e: any) {
+            // Error handled in modal
+        } finally {
+            setLoadingDetails(false)
+        }
+    }
+
     const getStatusBadge = (status: ProjectDocument['processing_status']) => {
         const badges = {
             pending: 'bg-yellow-100 text-yellow-800',
@@ -93,7 +132,7 @@ export default function DocumentsTab({ projectId }: DocumentsTabProps) {
             failed: 'Hata',
         }
         return (
-            <span className={`px-2 py-1 rounded text-xs font-medium ${badges[status]}`}>
+            <span className={`px-2 py-1 rounded-xs font-medium ${badges[status]}`}>
                 {labels[status]}
             </span>
         )
@@ -203,7 +242,23 @@ export default function DocumentsTab({ projectId }: DocumentsTabProps) {
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {new Date(doc.created_at).toLocaleDateString('tr-TR')}
                                         </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                            {doc.processing_status === 'completed' && (
+                                                <>
+                                                    <button
+                                                        onClick={() => setCompressDialogDoc(doc)}
+                                                        className="text-blue-600 hover:text-blue-900"
+                                                    >
+                                                        Sıkıştır
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleViewDetails(doc.id)}
+                                                        className="text-gray-600 hover:text-gray-900"
+                                                    >
+                                                        Detaylar
+                                                    </button>
+                                                </>
+                                            )}
                                             <button
                                                 onClick={() => handleDelete(doc.id)}
                                                 className="text-red-600 hover:text-red-900"
@@ -218,6 +273,23 @@ export default function DocumentsTab({ projectId }: DocumentsTabProps) {
                     </div>
                 )}
             </Card>
+
+            {/* Dialogs */}
+            {compressDialogDoc && (
+                <CompressionDialog
+                    isOpen={!!compressDialogDoc}
+                    onClose={() => setCompressDialogDoc(null)}
+                    onCompress={handleCompress}
+                    documentTitle={compressDialogDoc.title}
+                />
+            )}
+
+            <DocumentDetailsModal
+                isOpen={detailsModalOpen}
+                onClose={() => setDetailsModalOpen(false)}
+                details={selectedDetails}
+                loading={loadingDetails}
+            />
         </div>
     )
 }

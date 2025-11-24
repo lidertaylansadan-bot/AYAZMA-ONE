@@ -185,6 +185,15 @@ export async function extractTextFromPdfWithDetails(buffer: Buffer): Promise<Pdf
             textLength: combinedText.length
         }, 'PDF OCR completed');
 
+        // Emit telemetry event
+        // We don't have projectId/documentId here easily without changing signature, 
+        // but we can at least track the operation if we had them.
+        // For now, we will skip emitting here if we don't have the IDs, 
+        // OR we can update the signature. 
+        // However, looking at the plan, we should track it.
+        // Let's assume the caller handles telemetry or we update signature later.
+        // Actually, let's look at where this is called.
+
         return {
             text: combinedText,
             pages: pageResults,

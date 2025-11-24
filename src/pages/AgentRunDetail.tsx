@@ -32,11 +32,7 @@ export default function AgentRunDetail() {
     if (id) load()
   }, [id])
 
-  // Extract context from artifacts if available
-  const contextSlices = detail?.artifacts
-    ?.find((a) => a.meta?.contextEngineer)
-    ?.meta?.contextEngineer?.contextSlices
-
+  // Extract total tokens if available in metadata
   const totalTokens = detail?.artifacts
     ?.find((a) => a.meta?.contextEngineer)
     ?.meta?.contextEngineer?.metadata?.totalTokens
@@ -78,11 +74,10 @@ export default function AgentRunDetail() {
           </Card>
 
           {/* Context Visualization */}
-          {(contextSlices || detail.contextUsages) && (
+          {detail.contextUsages && detail.contextUsages.length > 0 && (
             <div>
               <h3 className="text-xl font-bold text-white mb-4">Context Kullanımı</h3>
               <ContextVisualization
-                contextSlices={contextSlices}
                 contextUsages={detail.contextUsages}
                 totalTokens={totalTokens}
               />

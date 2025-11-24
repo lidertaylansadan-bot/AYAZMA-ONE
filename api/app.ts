@@ -43,12 +43,12 @@ initWorkers()
 
 const app: express.Application = express()
 
-import { standardLimiter } from './middleware/rateLimiter.js'
+import { ipRateLimiter } from './middleware/rateLimit.js'
 
 app.use(cors())
 app.use(helmet())
 app.use(morgan('dev'))
-app.use(standardLimiter)
+app.use(ipRateLimiter) // Global IP-based rate limiting
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 

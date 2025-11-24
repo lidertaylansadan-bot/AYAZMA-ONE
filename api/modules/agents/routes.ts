@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { authenticateToken } from '../../middleware/auth.js'
 import { validateBody } from '../../core/validate.js'
+import { userHeavyRateLimiter } from '../../middleware/rateLimit.js'
 import { z } from 'zod'
 import * as controller from './controller.js'
 
@@ -14,7 +15,7 @@ const startSchema = z.object({
 
 const router = Router()
 
-router.post('/run', authenticateToken, validateBody(startSchema), controller.start)
+router.post('/run', authenticateToken, userHeavyRateLimiter, validateBody(startSchema), controller.start)
 router.get('/runs', authenticateToken, controller.list)
 router.get('/runs/:id', authenticateToken, controller.detail)
 

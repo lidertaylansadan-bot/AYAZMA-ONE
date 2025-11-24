@@ -22,13 +22,25 @@ export interface AgentArtifact {
 
 export interface ContextUsage {
   id: string
-  context_source: string
+  context_source: 'rag_search' | 'project_meta' | 'agent_history' | 'compressed_segment'
   document_id?: string
   chunk_id?: string
+  segment_id?: string
+  compressed_view_id?: string
   weight: number
   document_title?: string
   chunk_text?: string
+  segment_preview?: string
   similarity?: number
+  token_count?: number
+}
+
+export interface ContextSlice {
+  id: string
+  type: 'rag_chunk' | 'project_meta' | 'agent_history' | 'compressed_segment'
+  content: string
+  weight: number
+  metadata?: Record<string, any>
 }
 
 export interface AgentRunDetail {

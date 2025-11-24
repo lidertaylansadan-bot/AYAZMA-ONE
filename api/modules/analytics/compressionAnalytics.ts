@@ -4,7 +4,7 @@
  * Provides analytics queries for compression operations
  */
 
-import { supabase } from '../../core/supabase.js';
+import { supabase } from '../../config/supabase.js';
 import { logger } from '../../core/logger.js';
 
 /**

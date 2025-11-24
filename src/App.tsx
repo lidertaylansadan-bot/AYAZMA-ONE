@@ -15,6 +15,7 @@ const AgentRunDetail = lazy(() => import("./pages/AgentRunDetail"))
 const ProjectDetail = lazy(() => import("./pages/ProjectDetail"))
 const AnalyticsAi = lazy(() => import("./pages/AnalyticsAi"))
 const ProjectContentPlanner = lazy(() => import("./pages/ProjectContentPlanner"))
+const Admin = lazy(() => import("./pages/Admin"))
 
 function AppRoutes() {
   return (
@@ -43,6 +44,9 @@ function AppRoutes() {
         <Route path="/agents/runs/:id" element={<ProtectedRoute><AgentRunDetail /></ProtectedRoute>} />
         <Route path="/analytics/ai" element={<ProtectedRoute><AnalyticsAi /></ProtectedRoute>} />
         <Route path="/projects/:id/content" element={<ProtectedRoute><ProjectContentPlanner /></ProtectedRoute>} />
+
+        {/* Admin Route */}
+        <Route path="/admin" element={<Admin />} />
       </Routes>
     </Suspense>
   )

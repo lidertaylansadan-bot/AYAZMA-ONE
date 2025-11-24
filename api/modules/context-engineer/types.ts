@@ -38,6 +38,7 @@ export interface ContextSlice {
 
 export interface ContextEngineerInput {
     projectId: string
+    userId: string
     taskType: TaskType
     userGoal?: string
     maxTokens?: number

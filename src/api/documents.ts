@@ -74,3 +74,63 @@ export async function getDocumentChunks(
     )
     return response.data.data || response.data
 }
+
+export type CompressionStrategy = 'text-only' | 'optical-v1'
+
+export interface CompressionOptions {
+    ocrEnabled?: boolean
+    targetTokenBudget?: number
+}
+
+export interface CompressionDetails {
+    id: string
+    documentId: string
+    strategy: CompressionStrategy
+    modelName: string
+    rawTokenCount: number
+    compressedTokenCount: number
+    tokenSavingEstimate: number
+    processingTimeMs: number
+    createdAt: string
+    segments: {
+        segmentIndex: number
+        segmentType: string
+        pageNumbers: number[]
+        estimatedTokens: number
+        preview: string
+    }[]
+}
+
+export async function compressDocument(
+    projectId: string,
+    documentId: string,
+    strategy: CompressionStrategy,
+    options?: CompressionOptions
+): Promise<void> {
+    const token = localStorage.getItem('token')
+    await axios.post(
+        `${API_URL}/projects/${projectId}/documents/${documentId}/compress`,
+        { strategy, options },
+        {
+            headers: { Authorization: `Bearer ${token}` },
+        }
+    )
+}
+
+export async function getCompressionDetails(
+    projectId: string,
+    documentId: string
+): Promise<CompressionDetails | null> {
+    const token = localStorage.getItem('token')
+    try {
+        const response = await axios.get(
+            `${API_URL}/projects/${projectId}/documents/${documentId}/compression`,
+            {
+                headers: { Authorization: `Bearer ${token}` },
+            }
+        )
+        return response.data.data || response.data
+    } catch (error) {
+        return null
+    }
+}

@@ -3,6 +3,8 @@ import { supabase } from '../../config/supabase.js'
 import { ok } from '../../core/response.js'
 import { AppError } from '../../core/app-error.js'
 import { z } from 'zod'
+import { logAuditEvent } from '../../core/auditLogger.js'
+
 
 export async function getProjectAiSettings(req: Request, res: Response, _next: NextFunction) {
   const user = (req as any).user
@@ -14,12 +16,14 @@ export async function getProjectAiSettings(req: Request, res: Response, _next: N
   const { data: settings } = await supabase.from('project_ai_settings').select('*').eq('project_id', projectId).single()
   const result = settings
     ? {
-        provider: settings.provider || 'openai',
-        model: settings.model || 'gpt-4o-mini',
-        costPreference: settings.cost_preference || 'balanced',
-        latencyPreference: settings.latency_preference || 'balanced',
-      }
-    : { provider: 'openai', model: 'gpt-4o-mini', costPreference: 'balanced', latencyPreference: 'balanced' }
+      provider: settings.provider || 'openai',
+      model: settings.model || 'gpt-4o-mini',
+      costPreference: settings.cost_preference || 'balanced',
+      latencyPreference: settings.latency_preference || 'balanced',
+      autoOptimize: settings.auto_optimize || false,
+    }
+    : { provider: 'openai', model: 'gpt-4o-mini', costPreference: 'balanced', latencyPreference: 'balanced', autoOptimize: false }
+
   return ok(res, result)
 }
 
@@ -28,7 +32,9 @@ const bodySchema = z.object({
   model: z.string().min(1),
   costPreference: z.enum(['low', 'balanced', 'best_quality']),
   latencyPreference: z.enum(['low', 'balanced', 'ok_with_slow']),
+  autoOptimize: z.boolean().optional(),
 })
+
 
 export async function upsertProjectAiSettings(req: Request, res: Response, _next: NextFunction) {
   const user = (req as any).user
@@ -45,8 +51,10 @@ export async function upsertProjectAiSettings(req: Request, res: Response, _next
     model: parsed.data.model,
     cost_preference: parsed.data.costPreference,
     latency_preference: parsed.data.latencyPreference,
+    auto_optimize: parsed.data.autoOptimize ?? false,
     updated_at: new Date().toISOString(),
   }
+
   // upsert behavior: try update, if 0 rows then insert
   const { data: existing } = await supabase.from('project_ai_settings').select('project_id').eq('project_id', projectId).single()
   if (existing) {
@@ -56,10 +64,28 @@ export async function upsertProjectAiSettings(req: Request, res: Response, _next
     const { error: insErr } = await supabase.from('project_ai_settings').insert({ ...payload, created_at: new Date().toISOString() })
     if (insErr) throw new AppError('AI_SETTINGS_INSERT_FAILED', 'Failed to insert settings', 500, insErr)
   }
+
+  // Audit Log
+  await logAuditEvent({
+    userId: user.id,
+    projectId,
+    eventType: 'ai_config_changed',
+    metadata: {
+      provider: payload.provider,
+      model: payload.model,
+      costPreference: payload.cost_preference,
+      latencyPreference: payload.latency_preference,
+      autoOptimize: payload.auto_optimize
+    },
+    req
+  })
+
   return ok(res, {
     provider: payload.provider,
     model: payload.model,
     costPreference: payload.cost_preference,
     latencyPreference: payload.latency_preference,
+    autoOptimize: payload.auto_optimize,
   })
+
 }

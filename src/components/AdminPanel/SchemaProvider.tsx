@@ -1,11 +1,9 @@
 // src/components/AdminPanel/SchemaProvider.tsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
+import type { CrudSpec } from '../../utils/crudGenerator';
 
-export type TableSchema = {
-    columns: { name: string; type: string }[];
-};
-export type DatabaseSchema = Record<string, TableSchema>;
+export type DatabaseSchema = Record<string, CrudSpec>;
 
 const SchemaContext = createContext<DatabaseSchema | null>(null);
 

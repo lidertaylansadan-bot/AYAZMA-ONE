@@ -1,0 +1,37 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`DynamicCrud Component > matches snapshot for initial state 1`] = `
+<div>
+  <div
+    class="flex h-[calc(100vh-64px)]"
+  >
+    <aside
+      class="w-64 border-r border-[var(--color-border)] bg-[var(--color-bg-subtle)] overflow-y-auto"
+    >
+      <div
+        class="p-4 font-semibold text-[var(--color-text-secondary)] uppercase text-xs tracking-wider"
+      >
+        Tables
+      </div>
+      <ul>
+        <li>
+          <button
+            class="w-full text-left px-4 py-2 text-sm transition-colors text-[var(--color-text-primary)] hover:bg-[var(--color-bg-paper)]"
+          >
+            projects
+          </button>
+        </li>
+      </ul>
+    </aside>
+    <main
+      class="flex-1 overflow-hidden flex flex-col bg-[var(--color-bg-default)]"
+    >
+      <div
+        class="flex-1 flex items-center justify-center text-[var(--color-text-secondary)]"
+      >
+        Select a table to view its data
+      </div>
+    </main>
+  </div>
+</div>
+`;
