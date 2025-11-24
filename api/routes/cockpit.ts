@@ -114,4 +114,87 @@ router.get('/overview', authenticateToken, async (req: AuthenticatedRequest, res
     }
 });
 
+/**
+ * GET /api/cockpit/health
+ * Returns system health, security events, and optimization status
+ */
+router.get('/health', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+        if (!req.user) {
+            return fail(res, 'UNAUTHORIZED', 'User not authenticated', 401);
+        }
+
+        const userId = req.user.id;
+
+        // Get AI quality metrics (from evaluations)
+        const { data: evals, error: evalsError } = await supabase
+            .from('agent_evaluations')
+            .select('score_helpfulness, score_factuality, score_coherence, score_safety, created_at')
+            .eq('user_id', userId)
+            .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+            .order('created_at', { ascending: false });
+
+        const avgQuality = evals && evals.length > 0
+            ? {
+                helpfulness: evals.reduce((sum, e) => sum + (e.score_helpfulness || 0), 0) / evals.length,
+                factuality: evals.reduce((sum, e) => sum + (e.score_factuality || 0), 0) / evals.length,
+                coherence: evals.reduce((sum, e) => sum + (e.score_coherence || 0), 0) / evals.length,
+                safety: evals.reduce((sum, e) => sum + (e.score_safety || 0), 0) / evals.length,
+                count: evals.length
+            }
+            : null;
+
+        // Get cost trends (from ai_usage_logs)
+        const { data: usage, error: usageError } = await supabase
+            .from('ai_usage_logs')
+            .select('total_cost, created_at')
+            .eq('user_id', userId)
+            .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+
+        const totalCost = usage?.reduce((sum, u) => sum + (u.total_cost || 0), 0) || 0;
+
+        // Get security events (from audit_log)
+        const { data: securityEvents, error: securityError } = await supabase
+            .from('audit_log')
+            .select('event_type, severity, created_at, metadata')
+            .eq('user_id', userId)
+            .in('severity', ['warning', 'critical'])
+            .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+            .order('created_at', { ascending: false })
+            .limit(10);
+
+        // Get optimization status (check if auto_optimize is enabled for any project)
+        const { data: projects, error: projectsError } = await supabase
+            .from('projects')
+            .select('id, name')
+            .eq('owner_id', userId);
+
+        let optimizationEnabled = false;
+        if (projects && projects.length > 0) {
+            const { data: settings } = await supabase
+                .from('project_ai_settings')
+                .select('auto_optimize')
+                .in('project_id', projects.map(p => p.id));
+
+            optimizationEnabled = settings?.some(s => s.auto_optimize) || false;
+        }
+
+        return ok(res, {
+            aiQuality: avgQuality,
+            costTrends: {
+                totalCost30Days: totalCost,
+                usageCount: usage?.length || 0
+            },
+            securityEvents: securityEvents || [],
+            optimization: {
+                enabled: optimizationEnabled,
+                lastCheck: new Date().toISOString()
+            }
+        });
+    } catch (error) {
+        console.error('Cockpit health error:', error);
+        return fail(res, 'INTERNAL_ERROR', 'Internal server error', 500);
+    }
+});
+
 export default router;

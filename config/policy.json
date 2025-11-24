@@ -1,0 +1,97 @@
+{
+    "version": "1.0",
+    "description": "North Taylan OS Policy Configuration",
+    "policies": {
+        "agents": {
+            "enabled": true,
+            "allowedAgents": [
+                "design_spec",
+                "workflow_designer",
+                "content_strategist",
+                "orchestrator"
+            ],
+            "maxConcurrentRuns": 5,
+            "maxRunsPerHour": 60
+        },
+        "ai": {
+            "enabled": true,
+            "allowedProviders": [
+                "openai",
+                "google",
+                "anthropic"
+            ],
+            "allowedModels": {
+                "openai": [
+                    "gpt-4o",
+                    "gpt-4o-mini",
+                    "gpt-3.5-turbo"
+                ],
+                "google": [
+                    "gemini-1.5-pro",
+                    "gemini-1.5-flash",
+                    "gemini-2.0-flash-exp"
+                ],
+                "anthropic": [
+                    "claude-3-5-sonnet-20241022",
+                    "claude-3-haiku-20240307"
+                ]
+            },
+            "defaultProvider": "openai",
+            "defaultModel": "gpt-4o-mini",
+            "maxTokensPerRequest": 100000,
+            "requireApprovalForExpensiveModels": false
+        },
+        "webAutomation": {
+            "enabled": true,
+            "allowedDomains": [
+                "*.google.com",
+                "*.github.com",
+                "*.stackoverflow.com",
+                "*.wikipedia.org",
+                "*.npmjs.com",
+                "*.mdn.io",
+                "*.developer.mozilla.org"
+            ],
+            "blockedDomains": [
+                "*.facebook.com",
+                "*.twitter.com",
+                "*.instagram.com"
+            ],
+            "maxNavigationsPerSession": 50,
+            "maxSessionDurationMinutes": 30,
+            "allowJavaScript": true,
+            "allowCookies": false
+        },
+        "documents": {
+            "enabled": true,
+            "maxFileSizeMB": 20,
+            "allowedMimeTypes": [
+                "application/pdf",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "application/msword",
+                "text/plain",
+                "text/markdown",
+                "image/png",
+                "image/jpeg",
+                "image/webp"
+            ],
+            "maxDocumentsPerProject": 100,
+            "enableOCR": true,
+            "enableCompression": true
+        },
+        "security": {
+            "enableAuditLogging": true,
+            "enableRateLimiting": true,
+            "requireAuthentication": true,
+            "sessionTimeoutMinutes": 480,
+            "maxLoginAttempts": 5,
+            "lockoutDurationMinutes": 15
+        },
+        "optimization": {
+            "enableAutoOptimization": false,
+            "autoApplyLowRiskChanges": false,
+            "evaluationThreshold": 0.7,
+            "costSavingsThresholdPercent": 10
+        }
+    }
+}

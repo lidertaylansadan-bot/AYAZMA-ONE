@@ -3,7 +3,7 @@
  * Main service for document compression operations
  */
 
-import { supabase } from '../../config/supabase'
+import { supabase } from '../../config/supabase.js'
 import { compressionRegistry } from './registry'
 import type {
     CompressionInput,

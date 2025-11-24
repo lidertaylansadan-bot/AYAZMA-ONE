@@ -1,6 +1,9 @@
 import type { AiOptimizationSuggestion, OptimizationGoal } from './types.js'
 import { resolveEffectiveAiConfig } from '../configResolver.js'
 import { supabase } from '../../../config/supabase.js'
+import { evalService } from '../../eval/evalService.js'
+import { logger } from '../../../core/logger.js'
+import { logAuditEvent } from '../../../core/auditLogger.js'
 
 export async function computeProjectOptimizationSuggestion(
   userId: string,
@@ -18,6 +21,9 @@ export async function computeProjectOptimizationSuggestion(
   const logs = usage || []
   if (!logs.length) return null
 
+  // Get evaluation scores for quality assessment
+  const avgScores = await evalService.getProjectAverageScores(projectId)
+
   // current effective config
   const effective = await resolveEffectiveAiConfig({ userId, projectId })
   const current = {
@@ -29,10 +35,15 @@ export async function computeProjectOptimizationSuggestion(
 
   // aggregates
   const avgLatency = average(logs.map((l: any) => l.latency_ms).filter((x: any) => typeof x === 'number'))
+  const totalCost = logs.reduce((sum: number, l: any) => sum + (l.total_cost || 0), 0)
   const totalTokens = logs.reduce((sum: number, l: any) => sum + (l.total_tokens || 0), 0)
   const heavyTasks = countHeavyTasks(logs)
 
-  // rule-based suggestion
+  // Quality metrics from evaluations
+  const qualityScore = avgScores?.overall || 0.5
+  const isHighQuality = qualityScore >= 0.7
+
+  // rule-based suggestion with quality consideration
   let suggestedModel = current.model
   let suggestedProvider = current.provider
   let suggestedCost: 'low' | 'balanced' | 'best_quality' = current.costPreference || 'balanced'
@@ -41,18 +52,43 @@ export async function computeProjectOptimizationSuggestion(
 
   if (goal.goal === 'min_cost') {
     suggestedCost = 'low'
-    // if tokens high, pick cheaper model
-    if (totalTokens > 50000 || heavyTasks > 10) suggestedModel = 'gpt-4o-mini'
-    rationale = 'Toplam token yüksek; maliyeti düşürmek için daha ekonomik model ve düşük maliyet tercihi önerildi.'
+
+    // If quality is already high, we can safely downgrade to cheaper model
+    if (isHighQuality && (totalTokens > 50000 || heavyTasks > 10)) {
+      suggestedModel = 'gpt-4o-mini'
+      rationale = `High quality maintained (${(qualityScore * 100).toFixed(0)}%). Switching to cheaper model to reduce costs. Estimated savings: ${((totalCost * 0.3).toFixed(2))} USD/month.`
+    } else if (!isHighQuality) {
+      // Quality is low, don't downgrade further
+      rationale = `Quality score is low (${(qualityScore * 100).toFixed(0)}%). Maintaining current model to improve quality before cost optimization.`
+    } else {
+      suggestedModel = 'gpt-4o-mini'
+      rationale = 'Optimizing for cost with cheaper model and low cost preference.'
+    }
   } else if (goal.goal === 'min_latency') {
     suggestedLatency = 'low'
-    if ((avgLatency || 0) > 1000) suggestedModel = 'gpt-4o-mini'
-    rationale = 'Ortalama gecikme yüksek; daha hızlı model ve düşük gecikme tercihi önerildi.'
+
+    if ((avgLatency || 0) > 1000) {
+      suggestedModel = 'gpt-4o-mini' // Faster model
+      rationale = `High latency detected (${avgLatency}ms avg). Switching to faster model.`
+    } else {
+      rationale = 'Latency is acceptable. Maintaining current configuration.'
+    }
   } else {
+    // Balanced: optimize for quality + cost
     suggestedCost = 'balanced'
     suggestedLatency = 'balanced'
-    if (heavyTasks > 5 && (avgLatency || 0) < 800) suggestedModel = 'gpt-4o'
-    rationale = 'Kullanım dengeli; kalite ve performans arasında denge için öneri hazırlandı.'
+
+    if (!isHighQuality && heavyTasks > 5) {
+      // Quality is low and we have complex tasks - upgrade
+      suggestedModel = 'gpt-4o'
+      rationale = `Quality score is low (${(qualityScore * 100).toFixed(0)}%) with ${heavyTasks} complex tasks. Upgrading to better model for improved quality.`
+    } else if (isHighQuality && totalCost > 10) {
+      // Quality is high and costs are high - downgrade
+      suggestedModel = 'gpt-4o-mini'
+      rationale = `High quality maintained (${(qualityScore * 100).toFixed(0)}%). Costs are high ($${totalCost.toFixed(2)}). Downgrading to save costs while monitoring quality.`
+    } else {
+      rationale = 'Usage is balanced. No optimization needed at this time.'
+    }
   }
 
   return {
@@ -65,7 +101,60 @@ export async function computeProjectOptimizationSuggestion(
       latencyPreference: suggestedLatency,
     },
     rationale,
+    metadata: {
+      qualityScore: avgScores?.overall,
+      avgLatency,
+      totalCost,
+      totalTokens,
+      evaluationCount: avgScores ? 1 : 0
+    }
   }
+}
+
+/**
+ * Apply optimization suggestion to project settings
+ */
+export async function applyOptimizationSuggestion(
+  userId: string,
+  projectId: string,
+  suggestion: AiOptimizationSuggestion,
+  req?: any
+): Promise<void> {
+  logger.info({ projectId, suggestion }, 'Applying optimization suggestion')
+
+  // Update project AI settings
+  const { error } = await supabase
+    .from('project_ai_settings')
+    .upsert({
+      project_id: projectId,
+      provider: suggestion.suggested.provider,
+      model: suggestion.suggested.model,
+      cost_preference: suggestion.suggested.costPreference,
+      latency_preference: suggestion.suggested.latencyPreference,
+      updated_at: new Date().toISOString()
+    })
+
+  if (error) {
+    logger.error({ error, projectId }, 'Failed to apply optimization')
+    throw new Error('Failed to apply optimization suggestion')
+  }
+
+  // Audit log
+  await logAuditEvent({
+    userId,
+    projectId,
+    eventType: 'optimization_applied',
+    severity: 'info',
+    metadata: {
+      previous: suggestion.current,
+      new: suggestion.suggested,
+      rationale: suggestion.rationale,
+      automated: false
+    },
+    req
+  })
+
+  logger.info({ projectId }, 'Optimization applied successfully')
 }
 
 function average(nums: number[]): number | null {

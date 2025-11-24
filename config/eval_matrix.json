@@ -1,0 +1,308 @@
+{
+    "version": "1.0",
+    "description": "Universal Evaluation Matrix - Task-Type Specific Quality Metrics",
+    "taskTypes": {
+        "analysis": {
+            "description": "Data analysis, research analysis, trend analysis",
+            "metrics": {
+                "depth": {
+                    "weight": 0.3,
+                    "description": "How thorough and comprehensive is the analysis?",
+                    "scale": "0-1"
+                },
+                "accuracy": {
+                    "weight": 0.25,
+                    "description": "Are the findings factually correct and data-driven?",
+                    "scale": "0-1"
+                },
+                "insights": {
+                    "weight": 0.25,
+                    "description": "Does it provide actionable insights and patterns?",
+                    "scale": "0-1"
+                },
+                "structure": {
+                    "weight": 0.15,
+                    "description": "Is the analysis well-organized and easy to follow?",
+                    "scale": "0-1"
+                },
+                "evidence": {
+                    "weight": 0.05,
+                    "description": "Are claims backed by evidence and citations?",
+                    "scale": "0-1"
+                }
+            }
+        },
+        "design": {
+            "description": "UI/UX design, system design, architecture design",
+            "metrics": {
+                "feasibility": {
+                    "weight": 0.3,
+                    "description": "Can the design be realistically implemented?",
+                    "scale": "0-1"
+                },
+                "usability": {
+                    "weight": 0.25,
+                    "description": "Is it user-friendly and intuitive?",
+                    "scale": "0-1"
+                },
+                "completeness": {
+                    "weight": 0.2,
+                    "description": "Are all necessary components and flows covered?",
+                    "scale": "0-1"
+                },
+                "aesthetics": {
+                    "weight": 0.15,
+                    "description": "Is the design visually appealing and modern?",
+                    "scale": "0-1"
+                },
+                "scalability": {
+                    "weight": 0.1,
+                    "description": "Can the design scale with growth?",
+                    "scale": "0-1"
+                }
+            }
+        },
+        "workflow": {
+            "description": "Process workflows, automation workflows, business processes",
+            "metrics": {
+                "step_accuracy": {
+                    "weight": 0.35,
+                    "description": "Are all steps correct and in proper order?",
+                    "scale": "0-1"
+                },
+                "dependency_analysis": {
+                    "weight": 0.25,
+                    "description": "Are dependencies between steps properly identified?",
+                    "scale": "0-1"
+                },
+                "completeness": {
+                    "weight": 0.2,
+                    "description": "Are all necessary steps included?",
+                    "scale": "0-1"
+                },
+                "error_handling": {
+                    "weight": 0.15,
+                    "description": "Are error cases and edge cases handled?",
+                    "scale": "0-1"
+                },
+                "optimization": {
+                    "weight": 0.05,
+                    "description": "Is the workflow efficient and optimized?",
+                    "scale": "0-1"
+                }
+            }
+        },
+        "content_generation": {
+            "description": "Blog posts, marketing copy, documentation, creative writing",
+            "metrics": {
+                "relevance": {
+                    "weight": 0.3,
+                    "description": "Does the content address the topic effectively?",
+                    "scale": "0-1"
+                },
+                "quality": {
+                    "weight": 0.25,
+                    "description": "Is the writing clear, engaging, and well-written?",
+                    "scale": "0-1"
+                },
+                "originality": {
+                    "weight": 0.2,
+                    "description": "Is the content original and not generic?",
+                    "scale": "0-1"
+                },
+                "tone": {
+                    "weight": 0.15,
+                    "description": "Is the tone appropriate for the audience?",
+                    "scale": "0-1"
+                },
+                "structure": {
+                    "weight": 0.1,
+                    "description": "Is the content well-organized with clear sections?",
+                    "scale": "0-1"
+                }
+            }
+        },
+        "code_generation": {
+            "description": "Code snippets, functions, full applications",
+            "metrics": {
+                "functionality": {
+                    "weight": 0.3,
+                    "description": "Does the code work as intended?",
+                    "scale": "0-1"
+                },
+                "security": {
+                    "weight": 0.25,
+                    "description": "Are there security vulnerabilities?",
+                    "scale": "0-1"
+                },
+                "optimization": {
+                    "weight": 0.2,
+                    "description": "Is the code efficient and performant?",
+                    "scale": "0-1"
+                },
+                "maintainability": {
+                    "weight": 0.15,
+                    "description": "Is the code readable and well-documented?",
+                    "scale": "0-1"
+                },
+                "error_handling": {
+                    "weight": 0.1,
+                    "description": "Are edge cases and errors properly handled?",
+                    "scale": "0-1"
+                }
+            }
+        },
+        "legal_document": {
+            "description": "Contracts, terms of service, privacy policies, legal analysis",
+            "metrics": {
+                "accuracy": {
+                    "weight": 0.35,
+                    "description": "Is the legal information accurate and up-to-date?",
+                    "scale": "0-1"
+                },
+                "compliance": {
+                    "weight": 0.3,
+                    "description": "Does it comply with relevant laws and regulations?",
+                    "scale": "0-1"
+                },
+                "risk_identification": {
+                    "weight": 0.2,
+                    "description": "Are potential legal risks clearly identified?",
+                    "scale": "0-1"
+                },
+                "completeness": {
+                    "weight": 0.1,
+                    "description": "Are all necessary clauses and sections included?",
+                    "scale": "0-1"
+                },
+                "clarity": {
+                    "weight": 0.05,
+                    "description": "Is the language clear and unambiguous?",
+                    "scale": "0-1"
+                }
+            }
+        },
+        "web_research": {
+            "description": "Internet research, fact-checking, competitive analysis",
+            "metrics": {
+                "source_quality": {
+                    "weight": 0.3,
+                    "description": "Are sources credible and authoritative?",
+                    "scale": "0-1"
+                },
+                "url_accuracy": {
+                    "weight": 0.25,
+                    "description": "Are URLs valid and properly cited?",
+                    "scale": "0-1"
+                },
+                "comprehensiveness": {
+                    "weight": 0.2,
+                    "description": "Does the research cover all relevant aspects?",
+                    "scale": "0-1"
+                },
+                "recency": {
+                    "weight": 0.15,
+                    "description": "Is the information current and up-to-date?",
+                    "scale": "0-1"
+                },
+                "summary_clarity": {
+                    "weight": 0.1,
+                    "description": "Are findings summarized clearly?",
+                    "scale": "0-1"
+                }
+            }
+        },
+        "data_extraction": {
+            "description": "Extracting structured data from unstructured sources",
+            "metrics": {
+                "accuracy": {
+                    "weight": 0.35,
+                    "description": "Is the extracted data correct?",
+                    "scale": "0-1"
+                },
+                "completeness": {
+                    "weight": 0.3,
+                    "description": "Is all relevant data extracted?",
+                    "scale": "0-1"
+                },
+                "structure": {
+                    "weight": 0.2,
+                    "description": "Is the data properly structured and formatted?",
+                    "scale": "0-1"
+                },
+                "consistency": {
+                    "weight": 0.1,
+                    "description": "Is the data format consistent?",
+                    "scale": "0-1"
+                },
+                "validation": {
+                    "weight": 0.05,
+                    "description": "Is the data validated against expected types?",
+                    "scale": "0-1"
+                }
+            }
+        },
+        "decision_support": {
+            "description": "Decision analysis, recommendations, strategic planning",
+            "metrics": {
+                "logic_chain": {
+                    "weight": 0.3,
+                    "description": "Is the reasoning logical and well-structured?",
+                    "scale": "0-1"
+                },
+                "data_driven": {
+                    "weight": 0.25,
+                    "description": "Are recommendations backed by data and evidence?",
+                    "scale": "0-1"
+                },
+                "risk_analysis": {
+                    "weight": 0.2,
+                    "description": "Are risks and trade-offs clearly identified?",
+                    "scale": "0-1"
+                },
+                "actionability": {
+                    "weight": 0.15,
+                    "description": "Are recommendations clear and actionable?",
+                    "scale": "0-1"
+                },
+                "alternatives": {
+                    "weight": 0.1,
+                    "description": "Are alternative options considered?",
+                    "scale": "0-1"
+                }
+            }
+        }
+    },
+    "defaultMetrics": {
+        "description": "Fallback metrics for unknown task types",
+        "metrics": {
+            "helpfulness": {
+                "weight": 0.4,
+                "description": "Does the output address the user's request?",
+                "scale": "0-100"
+            },
+            "factuality": {
+                "weight": 0.3,
+                "description": "Is the information accurate and truthful?",
+                "scale": "0-1"
+            },
+            "coherence": {
+                "weight": 0.2,
+                "description": "Is the output well-structured and logical?",
+                "scale": "0-1"
+            },
+            "safety": {
+                "weight": 0.1,
+                "description": "Is the output safe and appropriate?",
+                "scale": "0-1"
+            }
+        }
+    },
+    "qualityThresholds": {
+        "excellent": 0.85,
+        "good": 0.7,
+        "acceptable": 0.6,
+        "needs_improvement": 0.5,
+        "needs_fix": 0.6
+    }
+}
