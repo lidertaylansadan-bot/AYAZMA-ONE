@@ -1,0 +1,57 @@
+name: Stage 6 QA Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test-and-validate:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: npm ci
+
+    - name: Lint Code
+      run: npm run lint
+      continue-on-error: true # Don't fail build on lint for now, but report it
+
+    - name: Run Unit Tests
+      run: npm test
+      env:
+        CI: true
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        REDIS_HOST: localhost
+        REDIS_PORT: 6379
+
+    - name: Run Worker Tests
+      run: npm test -- --testPathPattern=worker
+      env:
+        CI: true
+
+    - name: Run EvalService Tests
+      run: npm test -- --testPathPattern=evalService
+      env:
+        CI: true
+
+    - name: Upload Coverage
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: coverage/

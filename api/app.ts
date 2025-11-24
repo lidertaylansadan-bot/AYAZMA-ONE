@@ -38,8 +38,14 @@ import { registerAllAgents } from './modules/agents/registerAgents.js'
 registerAllAgents()
 
 // Initialize Workers
+// Initialize Workers
 import { initWorkers } from './modules/agents/workers/index.js'
+import { initSelfRepairSchedule } from './jobs/selfRepairWorker.js'
+import { initRegressionSchedule } from './jobs/regressionTestWorker.js'
+
 initWorkers()
+initSelfRepairSchedule().catch(err => logger.error({ err }, 'Failed to init self-repair schedule'))
+initRegressionSchedule().catch(err => logger.error({ err }, 'Failed to init regression schedule'))
 
 const app: express.Application = express()
 

@@ -4,6 +4,7 @@ export type AiTaskType =
   | 'feature_brainstorm'
   | 'workflow_suggestion'
   | 'marketing_copy'
+  | 'regression_test'
 
 export interface AiPreferences {
   costPreference?: 'low' | 'balanced' | 'best_quality'

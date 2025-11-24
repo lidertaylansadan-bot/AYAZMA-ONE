@@ -42,3 +42,14 @@ export async function routeAiRequest(input: AiRouterInput): Promise<AiRouterOutp
     throw new AppError('AI_REQUEST_ERROR', 'Failed to complete AI request', 502)
   }
 }
+
+/**
+ * Simplified wrapper for internal LLM calls
+ */
+export async function callLLM(input: Omit<AiRouterInput, 'userId' | 'projectId'> & { userId?: string, projectId?: string }): Promise<AiRouterOutput> {
+  return routeAiRequest({
+    userId: input.userId || 'system',
+    projectId: input.projectId || 'system',
+    ...input
+  })
+}

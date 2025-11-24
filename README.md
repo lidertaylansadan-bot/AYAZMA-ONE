@@ -2,6 +2,8 @@
 
 ## Ayazma ONE - Core Panel v1
 
+![Stage 6 QA Pipeline](https://github.com/lidertaylansadan-bot/AYAZMA-ONE/actions/workflows/stage6-qa.yml/badge.svg)
+
 AI-driven production platform where a single founder can create SaaS, web apps, mobile apps, workflows and content from a single dashboard.
 
 ## 🚀 Features

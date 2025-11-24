@@ -197,4 +197,70 @@ router.get('/health', authenticateToken, async (req: AuthenticatedRequest, res) 
     }
 });
 
+/**
+ * GET /api/cockpit/qa-metrics
+ * Returns QA and stability metrics:
+ * - Recent evaluations
+ * - Auto-fix events
+ * - Regression test status
+ * - Self-repair events
+ */
+router.get('/qa-metrics', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+        if (!req.user) {
+            return fail(res, 'UNAUTHORIZED', 'User not authenticated', 401);
+        }
+
+        const userId = req.user.id;
+
+        // 1. Recent Evaluations (last 20)
+        const { data: evaluations, error: evalError } = await supabase
+            .from('agent_evaluations')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(20);
+
+        if (evalError) throw evalError;
+
+        // 2. Auto-Fix Events (last 10)
+        const { data: autoFixes, error: fixError } = await supabase
+            .from('agent_fixes')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(10);
+
+        if (fixError && fixError.code !== '42P01') throw fixError; // Ignore if table doesn't exist yet
+
+        // 3. Regression Test Status
+        const { data: regressionTests, error: regError } = await supabase
+            .from('regression_tests')
+            .select('*')
+            .order('last_run_at', { ascending: false });
+
+        if (regError && regError.code !== '42P01') throw regError;
+
+        // 4. Self-Repair Events (from audit log)
+        const { data: selfRepairs, error: repairError } = await supabase
+            .from('audit_log')
+            .select('*')
+            .eq('event_type', 'AGENT_CONFIG_UPDATE')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(10);
+
+        if (repairError) throw repairError;
+
+        return ok(res, {
+            evaluations: evaluations || [],
+            autoFixes: autoFixes || [],
+            regressionTests: regressionTests || [],
+            selfRepairs: selfRepairs || []
+        });
+    } catch (error: any) {
+        console.error('Cockpit QA metrics error:', error);
+        return fail(res, 'INTERNAL_ERROR', error.message || 'Internal server error', 500);
+    }
+});
+
 export default router;

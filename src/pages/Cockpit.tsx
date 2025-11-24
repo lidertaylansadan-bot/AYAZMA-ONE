@@ -6,6 +6,7 @@ import { ProjectsPanel } from '../components/cockpit/ProjectsPanel';
 import { TodayPanel } from '../components/cockpit/TodayPanel';
 import { CommandPalette } from '../components/cockpit/CommandPalette';
 import { ActivityFeed } from '../components/cockpit/ActivityFeed';
+import { StabilityQAPanel } from '../components/cockpit/StabilityQAPanel';
 import { Toaster } from 'sonner';
 import { AlertCircle } from 'lucide-react';
 
@@ -59,6 +60,7 @@ export default function Cockpit() {
                         projects={data.projects}
                         onTasksChanged={refetch}
                     />
+                    <StabilityQAPanel />
                 </div>
 
                 {/* Right Column - Command Palette & Activity */}
