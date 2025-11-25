@@ -94,15 +94,25 @@ export const compressionWorker = new Worker<
 
             // 4️⃣ Store compressed segments
             if (result.segments.length > 0) {
-                const segmentsToInsert = result.segments.map((seg: any) => ({
-                    compressed_view_id: viewId,
-                    segment_index: seg.segmentIndex,
-                    segment_type: seg.segmentType,
-                    payload: seg.payload,
-                    source_chunk_ids: seg.sourceChunkIds,
-                    page_numbers: seg.pageNumbers,
-                    estimated_tokens: seg.estimatedTokens,
-                }));
+                const segmentsToInsert = result.segments.map((seg: unknown) => {
+                    const segment = seg as {
+                        segmentIndex: number;
+                        segmentType: string;
+                        payload: unknown;
+                        sourceChunkIds: string[];
+                        pageNumbers: number[];
+                        estimatedTokens: number;
+                    };
+                    return {
+                        compressed_view_id: viewId,
+                        segment_index: segment.segmentIndex,
+                        segment_type: segment.segmentType,
+                        payload: segment.payload,
+                        source_chunk_ids: segment.sourceChunkIds,
+                        page_numbers: segment.pageNumbers,
+                        estimated_tokens: segment.estimatedTokens,
+                    };
+                });
 
                 const { error: insertSegmentsErr } = await supabase
                     .from('document_compressed_segments')
