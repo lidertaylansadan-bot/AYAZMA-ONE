@@ -25,6 +25,9 @@ import aiOptimizerRoutes from './modules/ai/optimizer/routes.js'
 import contentRoutes from './modules/content/routes.js'
 import helmet from 'helmet'
 import morgan from 'morgan'
+import feedbackRouter from './modules/feedback/feedbackRouter.js'
+import { optimizationRouter } from './modules/optimization/optimizationRouter.js'
+import compressionRoutes from './routes/compression.js'
 
 // for esm mode
 const __filename = fileURLToPath(import.meta.url)
@@ -37,7 +40,6 @@ dotenv.config({ path: path.join(__dirname, '.env') })
 import { registerAllAgents } from './modules/agents/registerAgents.js'
 registerAllAgents()
 
-// Initialize Workers
 // Initialize Workers
 import { initWorkers } from './modules/agents/workers/index.js'
 import { initSelfRepairSchedule } from './jobs/selfRepairWorker.js'
@@ -72,13 +74,9 @@ app.use('/api/ai/optimize', aiOptimizerRoutes)
 app.use('/api/cockpit', cockpitRoutes)
 app.use('/api/tasks', tasksRoutes)
 app.use('/api', contentRoutes)
-
-import compressionRoutes from './routes/compression.js';
-app.use('/api/compression', compressionRoutes);
-
-// TODO: Fix module resolution for health routes
-// import healthRoutes from './routes/health.js';
-// app.use('/api/health', healthRoutes);
+app.use('/api/feedback', feedbackRoutes)
+app.use('/api/optimization', optimizationRouter)
+app.use('/api/compression', compressionRoutes)
 
 // Temporary basic health endpoint
 app.get('/api/health', (req: Request, res: Response) => {

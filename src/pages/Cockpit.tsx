@@ -9,6 +9,7 @@ import { TodayPanel } from '../components/cockpit/TodayPanel';
 import { CommandPalette } from '../components/cockpit/CommandPalette';
 import { ActivityFeed } from '../components/cockpit/ActivityFeed';
 import { StabilityQAPanel } from '../components/cockpit/StabilityQAPanel';
+import { CostAlertsPanel } from '../components/cockpit/CostAlertsPanel';
 import { Toaster } from 'sonner';
 import { AlertCircle, RefreshCw, LayoutDashboard } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -27,19 +28,23 @@ export default function Cockpit() {
     if (error) {
         return (
             <DashboardLayout title="Cockpit">
-                <div className="flex flex-col items-center justify-center py-24 glass-panel rounded-3xl border border-red-500/20">
-                    <div className="p-4 rounded-full bg-red-500/10 mb-4">
-                        <AlertCircle className="w-12 h-12 text-red-400" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-white mb-2">Cockpit Yüklenemedi</h2>
-                    <p className="text-gray-400 mb-8 max-w-md text-center">{error.message}</p>
-                    <Button
-                        onClick={refetch}
-                        variant="primary"
-                        icon={RefreshCw}
-                    >
-                        Tekrar Dene
-                    </Button>
+                <div className="flex items-center justify-center min-h-[60vh]">
+                    <Card className="w-full max-w-md border-red-500/20">
+                        <div className="flex flex-col items-center justify-center py-8 text-center">
+                            <div className="p-4 rounded-full bg-red-500/10 mb-4">
+                                <AlertCircle className="w-12 h-12 text-red-400" />
+                            </div>
+                            <h2 className="text-2xl font-bold text-white mb-2">Cockpit Yüklenemedi</h2>
+                            <p className="text-gray-400 mb-8">{error.message}</p>
+                            <Button
+                                onClick={refetch}
+                                variant="primary"
+                                icon={RefreshCw}
+                            >
+                                Tekrar Dene
+                            </Button>
+                        </div>
+                    </Card>
                 </div>
             </DashboardLayout>
         );
@@ -120,6 +125,14 @@ export default function Cockpit() {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.5 }}
+                    >
+                        <CostAlertsPanel projects={data.projects} />
+                    </motion.div>
+
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.6 }}
                     >
                         <ActivityFeed runs={data.recentAgentRuns} />
                     </motion.div>

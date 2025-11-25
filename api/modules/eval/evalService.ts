@@ -51,72 +51,23 @@ export class EvalService {
      * Evaluate agent run using task-type specific metrics
      */
     async evaluateAgentRun(input: EvalInput): Promise<EvalResult> {
-        logger.info({ agentRunId: input.agentRunId, taskType: input.taskType }, 'Starting agent run evaluation')
+        logger.info({ agentRunId: input.agentRunId, taskType: input.taskType, models: input.models }, 'Starting agent run evaluation')
 
         try {
             const matrix = await this.getEvalMatrix()
-
-            // Get task-type specific metrics or fall back to default
             const taskMetrics = matrix.taskTypes[input.taskType] || matrix.defaultMetrics
-
-            // Build evaluation prompt with task-specific metrics
             const evalPrompt = this.buildMultiMetricPrompt(input, taskMetrics)
 
-            // Call LLM for evaluation
-            const response = await callLLM({
-                provider: 'openai',
-                model: 'gpt-4o-mini',
-                messages: [
-                    {
-                        role: 'system',
-                        content: 'You are an expert evaluator of AI-generated content. Provide objective, numerical scores based on the criteria provided. Always output valid JSON.'
-                    },
-                    {
-                        role: 'user',
-                        content: evalPrompt
-                    }
-                ],
-                temperature: 0.1,
-                maxTokens: 800
-            })
+            const models = input.models && input.models.length > 0 ? input.models : ['gpt-4o-mini']
 
-            // Parse multi-metric scores
-            const { metricScores, reasoning } = this.parseMultiMetricScores(response.content, taskMetrics)
-
-            // Calculate weighted overall score
-            const overall = this.calculateWeightedScore(metricScores, taskMetrics)
-
-            // Determine if fix is needed
-            const needsFix = overall < (matrix.qualityThresholds.needs_fix || 0.6)
-
-            // Save to database
-            const result: EvalResult = {
-                agentRunId: input.agentRunId,
-                userId: input.userId,
-                projectId: input.projectId,
-                taskType: input.taskType,
-                scores: {
-                    helpfulness: metricScores.helpfulness || 50,
-                    factuality: metricScores.factuality || 0.5,
-                    coherence: metricScores.coherence || 0.5,
-                    safety: metricScores.safety || 1,
-                    overall
-                },
-                metricScores,
-                needsFix,
-                notes: reasoning,
-                evaluatedAt: new Date()
+            // Single model evaluation
+            if (models.length === 1) {
+                return this.evaluateSingleModel(input, models[0], evalPrompt, taskMetrics, matrix)
             }
 
-            await this.saveEvaluation(result)
+            // Multi-model consensus evaluation
+            return this.evaluateWithConsensus(input, models, evalPrompt, taskMetrics, matrix)
 
-            logger.info({
-                agentRunId: input.agentRunId,
-                overall: overall.toFixed(2),
-                needsFix
-            }, 'Evaluation completed')
-
-            return result
         } catch (error) {
             logger.error({
                 error: error instanceof Error ? error.message : error,
@@ -124,6 +75,141 @@ export class EvalService {
             }, 'Evaluation failed')
             throw error
         }
+    }
+
+    private async evaluateSingleModel(input: EvalInput, model: string, prompt: string, taskMetrics: any, matrix: any): Promise<EvalResult> {
+        const response = await callLLM({
+            // @ts-ignore - provider is not in the type definition but required by implementation
+            provider: 'openai',
+            model: model,
+            messages: [
+                {
+                    role: 'system',
+                    content: 'You are an expert evaluator of AI-generated content. Provide objective, numerical scores based on the criteria provided. Always output valid JSON.'
+                },
+                {
+                    role: 'user',
+                    content: prompt
+                }
+            ],
+            temperature: 0.1,
+            maxTokens: 800
+        })
+
+        // @ts-ignore - content property access
+        const { metricScores, reasoning } = this.parseMultiMetricScores(response.content || JSON.stringify(response), taskMetrics)
+        const overall = this.calculateWeightedScore(metricScores, taskMetrics)
+        const needsFix = overall < (matrix.qualityThresholds.needs_fix || 0.6)
+
+        const result: EvalResult = {
+            agentRunId: input.agentRunId,
+            userId: input.userId,
+            projectId: input.projectId,
+            taskType: input.taskType,
+            scores: {
+                helpfulness: metricScores.helpfulness || 50,
+                factuality: metricScores.factuality || 0.5,
+                coherence: metricScores.coherence || 0.5,
+                safety: metricScores.safety || 1,
+                overall
+            },
+            metricScores,
+            needsFix,
+            notes: reasoning,
+            evaluatedAt: new Date()
+        }
+
+        await this.saveEvaluation(result)
+        return result
+    }
+
+    private async evaluateWithConsensus(input: EvalInput, models: string[], prompt: string, taskMetrics: any, matrix: any): Promise<EvalResult> {
+        const promises = models.map(async (model) => {
+            try {
+                const response = await callLLM({
+                    // @ts-ignore
+                    provider: 'openai',
+                    model: model,
+                    messages: [
+                        {
+                            role: 'system',
+                            content: 'You are an expert evaluator of AI-generated content. Provide objective, numerical scores based on the criteria provided. Always output valid JSON.'
+                        },
+                        {
+                            role: 'user',
+                            content: prompt
+                        }
+                    ],
+                    temperature: 0.1,
+                    maxTokens: 800
+                })
+                // @ts-ignore
+                const { metricScores, reasoning } = this.parseMultiMetricScores(response.content || JSON.stringify(response), taskMetrics)
+                return { model, metricScores, reasoning, success: true }
+            } catch (error) {
+                logger.error({ model, error }, 'Model evaluation failed')
+                return { model, metricScores: {}, reasoning: '', success: false }
+            }
+        })
+
+        const results = await Promise.all(promises)
+        const successfulResults = results.filter(r => r.success)
+
+        if (successfulResults.length === 0) {
+            throw new Error('All models failed to evaluate')
+        }
+
+        // Calculate average scores
+        const averagedScores: Record<string, number> = {}
+        for (const metricName of Object.keys(taskMetrics.metrics)) {
+            let sum = 0
+            let count = 0
+            for (const result of successfulResults) {
+                // @ts-ignore
+                if (result.metricScores[metricName] !== undefined) {
+                    // @ts-ignore
+                    sum += result.metricScores[metricName]
+                    count++
+                }
+            }
+            averagedScores[metricName] = count > 0 ? sum / count : 0.5
+        }
+
+        const overall = this.calculateWeightedScore(averagedScores, taskMetrics)
+        const needsFix = overall < (matrix.qualityThresholds.needs_fix || 0.6)
+
+        // Compile consensus details
+        const consensusDetails = {
+            models: models,
+            individualResults: results.map(r => ({
+                model: r.model,
+                scores: r.metricScores,
+                reasoning: r.reasoning,
+                success: r.success
+            }))
+        }
+
+        const result: EvalResult = {
+            agentRunId: input.agentRunId,
+            userId: input.userId,
+            projectId: input.projectId,
+            taskType: input.taskType,
+            scores: {
+                helpfulness: averagedScores.helpfulness || 50,
+                factuality: averagedScores.factuality || 0.5,
+                coherence: averagedScores.coherence || 0.5,
+                safety: averagedScores.safety || 1,
+                overall
+            },
+            metricScores: averagedScores,
+            consensusDetails,
+            needsFix,
+            notes: 'Multi-model consensus evaluation',
+            evaluatedAt: new Date()
+        }
+
+        await this.saveEvaluation(result)
+        return result
     }
 
     /**
@@ -323,6 +409,73 @@ Be objective and precise. Only output the JSON, no additional text.`
             coherence: sum.coherence / count,
             safety: sum.safety / count,
             overall: (sum.factuality / count + sum.coherence / count + sum.safety / count + (sum.helpfulness / count / 100)) / 4
+        }
+    }
+
+    /**
+     * Incorporate user feedback into evaluation scores
+     */
+    async incorporateUserFeedback(agentRunId: string): Promise<EvalResult | null> {
+        try {
+            // 1. Fetch existing evaluation
+            const { data: evaluation, error: evalError } = await supabase
+                .from('agent_evaluations')
+                .select('*')
+                .eq('agent_run_id', agentRunId)
+                .single()
+
+            if (evalError || !evaluation) {
+                logger.warn({ agentRunId }, 'No evaluation found to update with feedback')
+                return null
+            }
+
+            // 2. Fetch user feedback
+            const { data: feedback, error: feedbackError } = await supabase
+                .from('user_feedback')
+                .select('*')
+                .eq('agent_run_id', agentRunId)
+                .single()
+
+            if (feedbackError || !feedback) {
+                logger.warn({ agentRunId }, 'No feedback found')
+                return null
+            }
+
+            // 3. Adjust scores based on feedback
+            // Normalize user rating (1-5) to 0-1 scale
+            const userScore = (feedback.rating - 1) / 4
+
+            // Simple weighted average: 70% automated, 30% user
+            // In a real system, this logic would be more sophisticated
+            const newOverall = (evaluation.metric_scores.overall || 0.5) * 0.7 + userScore * 0.3
+
+            // Update evaluation record
+            const { error: updateError } = await supabase
+                .from('agent_evaluations')
+                .update({
+                    user_feedback_score: userScore,
+                    final_score: newOverall,
+                    updated_at: new Date()
+                })
+                .eq('id', evaluation.id)
+
+            if (updateError) {
+                throw updateError
+            }
+
+            logger.info({ agentRunId, oldScore: evaluation.metric_scores.overall, newScore: newOverall }, 'Evaluation updated with user feedback')
+
+            return {
+                ...evaluation,
+                scores: {
+                    ...evaluation.metric_scores,
+                    overall: newOverall
+                }
+            }
+
+        } catch (error) {
+            logger.error({ error, agentRunId }, 'Failed to incorporate user feedback')
+            return null
         }
     }
 }

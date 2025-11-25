@@ -10,6 +10,7 @@ export interface EvalResult {
     taskType: string
     scores: EvalScores
     metricScores?: Record<string, number> // Task-specific metric scores
+    consensusDetails?: any // Details from multi-model consensus
     needsFix: boolean
     notes?: string
     evaluatedAt: Date
@@ -31,6 +32,7 @@ export interface EvalInput {
     prompt: string
     output: string
     context?: string
+    models?: string[] // Optional list of models to use for evaluation
 }
 
 export interface EvalCriteria {

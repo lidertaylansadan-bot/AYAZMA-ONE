@@ -8,6 +8,7 @@ export interface AgentContext {
   sectorCode?: string
   wizardAnswers?: Record<string, any>
   extra?: Record<string, any>
+  config?: Record<string, any>
   runId?: string
 }
 
