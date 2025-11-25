@@ -76,15 +76,14 @@ app.use('/api', contentRoutes)
 import compressionRoutes from './routes/compression.js';
 app.use('/api/compression', compressionRoutes);
 
-/**
- * health
- */
-app.use(
-  '/api/health',
-  (req: Request, res: Response): void => {
-    res.status(200).json({ success: true, message: 'ok' })
-  },
-)
+// TODO: Fix module resolution for health routes
+// import healthRoutes from './routes/health.js';
+// app.use('/api/health', healthRoutes);
+
+// Temporary basic health endpoint
+app.get('/api/health', (req: Request, res: Response) => {
+  res.status(200).json({ success: true, message: 'ok', stage6: 'partial' });
+});
 
 /**
  * error handler middleware

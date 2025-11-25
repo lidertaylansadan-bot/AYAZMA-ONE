@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import DashboardLayout from '../components/layout/DashboardLayout'
 import Button from '../components/ui/Button'
@@ -6,6 +6,7 @@ import Card from '../components/ui/Card'
 import Select from '../components/ui/Select'
 import Input from '../components/ui/Input'
 import Spinner from '../components/ui/Spinner'
+import Badge from '../components/ui/Badge'
 import { getProjects, createProject, apiCall } from '../api/projects'
 import { useStore } from '../store/useStore'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -20,7 +21,10 @@ import {
   Video,
   Layers,
   TrendingUp,
-  CheckCircle2
+  CheckCircle2,
+  Sparkles,
+  Zap,
+  LayoutDashboard
 } from 'lucide-react'
 import { Toaster, toast } from 'sonner'
 
@@ -28,6 +32,7 @@ export function Dashboard() {
   const { projects, setProjects } = useStore()
   const [loading, setLoading] = useState(true)
   const [showNewProjectModal, setShowNewProjectModal] = useState(false)
+  const [animatedStats, setAnimatedStats] = useState([0, 0, 0])
 
   const [newProject, setNewProject] = useState({
     name: '',
@@ -107,13 +112,13 @@ export function Dashboard() {
     }
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'draft': return 'bg-gray-700/50 text-gray-300 border border-gray-600'
-      case 'building': return 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/50'
-      case 'live': return 'bg-green-500/20 text-green-300 border border-green-500/50'
-      case 'archived': return 'bg-red-500/20 text-red-300 border border-red-500/50'
-      default: return 'bg-gray-700/50 text-gray-300 border border-gray-600'
+      case 'draft': return <Badge variant="default" size="sm">Taslak</Badge>
+      case 'building': return <Badge variant="warning" size="sm" icon={Zap} pulse>Geliştiriliyor</Badge>
+      case 'live': return <Badge variant="success" size="sm" icon={CheckCircle2}>Yayında</Badge>
+      case 'archived': return <Badge variant="error" size="sm">Arşivlendi</Badge>
+      default: return <Badge variant="default" size="sm">{status}</Badge>
     }
   }
 
@@ -123,11 +128,53 @@ export function Dashboard() {
     { label: 'Tamamlanan', value: projects.filter(p => p.status === 'live').length, icon: CheckCircle2, color: 'from-purple-500 to-pink-500' },
   ]
 
-  if (loading) return <Spinner />
+  // Animate stat counters
+  useEffect(() => {
+    stats.forEach((stat, index) => {
+      let start = 0
+      const end = stat.value
+      const duration = 1000
+      const increment = end > 0 ? Math.max(1, Math.ceil(end / (duration / 16))) : 0
+
+      if (end === 0) {
+        setAnimatedStats(prev => {
+          const newStats = [...prev]
+          newStats[index] = 0
+          return newStats
+        })
+        return
+      }
+
+      const timer = setInterval(() => {
+        start += increment
+        if (start >= end) {
+          setAnimatedStats(prev => {
+            const newStats = [...prev]
+            newStats[index] = end
+            return newStats
+          })
+          clearInterval(timer)
+        } else {
+          setAnimatedStats(prev => {
+            const newStats = [...prev]
+            newStats[index] = start
+            return newStats
+          })
+        }
+      }, 16)
+
+      return () => clearInterval(timer)
+    })
+  }, [projects])
+
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-screen bg-premium-bg">
+      <Spinner size="lg" />
+    </div>
+  )
 
   return (
-    <DashboardLayout title="Projelerim">
-      <h1 className="text-3xl font-bold text-white mb-4">Dashboard</h1>
+    <DashboardLayout title="Dashboard">
       <Toaster position="top-right" theme="dark" />
 
       {/* Stats Cards */}
@@ -139,15 +186,26 @@ export function Dashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <Card hover={true} className="!p-6 border-t border-white/10">
+            <Card hover={true} variant="gradient-border" className="!p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-premium-muted mb-1 font-medium">{stat.label}</p>
-                  <p className="text-4xl font-bold text-white tracking-tight">{stat.value}</p>
+                  <p className="text-sm text-premium-muted mb-2 font-medium uppercase tracking-wider">{stat.label}</p>
+                  <motion.p
+                    className="text-5xl font-bold text-gradient tracking-tight"
+                    initial={{ scale: 0.5 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: index * 0.1 + 0.2, type: 'spring' }}
+                  >
+                    {animatedStats[index]}
+                  </motion.p>
                 </div>
-                <div className={`p-4 rounded-2xl bg-gradient-to-br ${stat.color} shadow-lg shadow-indigo-500/20`}>
-                  <stat.icon className="w-6 h-6 text-white" />
-                </div>
+                <motion.div
+                  className={`p-4 rounded-2xl bg-gradient-to-br ${stat.color} shadow-lg relative overflow-hidden`}
+                  whileHover={{ rotate: 10, scale: 1.1 }}
+                >
+                  <div className="absolute inset-0 bg-white/20 rounded-2xl blur-xl" />
+                  <stat.icon className="w-7 h-7 text-white relative z-10" />
+                </motion.div>
               </div>
             </Card>
           </motion.div>
@@ -157,11 +215,19 @@ export function Dashboard() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-white mb-1 tracking-tight">Tüm Projeler</h2>
+          <h2 className="text-2xl font-bold text-white mb-1 tracking-tight flex items-center gap-2">
+            <LayoutDashboard className="w-6 h-6 text-indigo-400" />
+            Tüm Projeler
+          </h2>
           <p className="text-premium-muted text-sm">Çalışmalarınızı yönetin ve geliştirin</p>
         </div>
-        <Button onClick={() => setShowNewProjectModal(true)} className="bg-primary-gradient hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 rounded-xl px-6 py-2.5">
-          <Plus className="w-5 h-5 mr-2" /> Yeni Proje
+        <Button
+          onClick={() => setShowNewProjectModal(true)}
+          variant="glow"
+          icon={Plus}
+          className="rounded-xl px-6 py-2.5"
+        >
+          Yeni Proje
         </Button>
       </div>
 
@@ -169,16 +235,22 @@ export function Dashboard() {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="text-center py-24 glass-panel rounded-3xl border-dashed border-2 border-glass-border/50"
+          className="text-center py-24 glass-panel rounded-3xl border-dashed border-2 border-glass-border/50 relative overflow-hidden group"
         >
-          <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-500/20 to-indigo-500/20 flex items-center justify-center relative">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+          <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-500/20 to-indigo-500/20 flex items-center justify-center relative animate-float">
             <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full"></div>
             <Folder className="w-12 h-12 text-blue-400 relative z-10" />
           </div>
           <h3 className="text-2xl font-bold text-white mb-3">Henüz projeniz yok</h3>
           <p className="text-premium-muted mb-8 max-w-md mx-auto text-lg">İlk projenizi oluşturarak harika işlere başlayın</p>
-          <Button onClick={() => setShowNewProjectModal(true)} className="mx-auto bg-primary-gradient px-8 py-3 rounded-xl text-lg">
-            <Plus className="w-5 h-5 mr-2" />
+          <Button
+            onClick={() => setShowNewProjectModal(true)}
+            variant="gradient"
+            size="lg"
+            icon={Plus}
+            className="mx-auto rounded-xl"
+          >
             Yeni Proje Oluştur
           </Button>
         </motion.div>
@@ -191,17 +263,15 @@ export function Dashboard() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
             >
-              <Card className="h-full flex flex-col border-t border-white/5">
+              <Card className="h-full flex flex-col border-t border-white/5" variant="interactive">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center">
-                    <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-white/5 text-blue-400 mr-4">
+                    <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-white/5 text-blue-400 mr-4 shadow-inner">
                       {getProjectIcon(project.project_type)}
                     </div>
                     <h3 className="text-lg font-bold text-white tracking-tight">{project.name}</h3>
                   </div>
-                  <span className={`px-3 py-1 text-xs font-bold rounded-full border ${getStatusColor(project.status)}`}>
-                    {project.status.toUpperCase()}
-                  </span>
+                  {getStatusBadge(project.status)}
                 </div>
 
                 <p className="text-premium-muted text-sm mb-6 line-clamp-2 min-h-[40px] leading-relaxed">
@@ -210,7 +280,7 @@ export function Dashboard() {
 
                 <div className="mt-auto">
                   <div className="flex items-center justify-between text-sm text-gray-500 mb-6 pb-6 border-b border-white/5">
-                    <span className="flex items-center text-gray-400 bg-white/5 px-3 py-1 rounded-lg">
+                    <span className="flex items-center text-gray-400 bg-white/5 px-3 py-1 rounded-lg border border-white/5">
                       <span className="font-medium text-xs uppercase tracking-wider">{project.sector}</span>
                     </span>
                     <span className="text-gray-500 font-mono text-xs">{new Date(project.created_at).toLocaleDateString('tr-TR')}</span>
@@ -219,17 +289,19 @@ export function Dashboard() {
                   <div className="flex gap-3">
                     <Link
                       to={`/projects/${project.id}`}
-                      className="flex-1 flex items-center justify-center px-4 py-2.5 text-sm font-medium bg-white/5 text-gray-300 rounded-xl hover:bg-white/10 border border-white/5 transition-all"
+                      className="flex-1"
                     >
-                      <Eye className="w-4 h-4 mr-2" />
-                      Detay
+                      <Button variant="secondary" className="w-full" icon={Eye}>
+                        Detay
+                      </Button>
                     </Link>
                     <Link
                       to={`/wizard/app?project=${project.id}`}
-                      className="flex-1 flex items-center justify-center px-4 py-2.5 text-sm font-medium bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-500 hover:to-indigo-500 transition-all shadow-lg shadow-blue-500/20"
+                      className="flex-1"
                     >
-                      <Wand2 className="w-4 h-4 mr-2" />
-                      Wizard
+                      <Button variant="primary" className="w-full" icon={Wand2}>
+                        Wizard
+                      </Button>
                     </Link>
                   </div>
                 </div>
@@ -242,7 +314,7 @@ export function Dashboard() {
       {/* New Project Modal */}
       <AnimatePresence>
         {showNewProjectModal && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 px-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -250,9 +322,16 @@ export function Dashboard() {
               className="glass-panel rounded-3xl p-8 w-full max-w-md shadow-2xl border border-white/10 relative overflow-hidden"
             >
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
-              <h2 className="text-3xl font-bold text-white mb-8 tracking-tight">Yeni Proje</h2>
+              <div className="absolute -top-10 -right-10 w-32 h-32 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl pointer-events-none" />
 
-              <div className="space-y-5">
+              <h2 className="text-3xl font-bold text-white mb-2 tracking-tight flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-yellow-400" />
+                Yeni Proje
+              </h2>
+              <p className="text-premium-muted mb-8 text-sm">Hayalinizdeki projeyi oluşturmaya başlayın</p>
+
+              <div className="space-y-5 relative z-10">
                 <Input
                   label="Proje Adı"
                   value={newProject.name}
@@ -312,11 +391,11 @@ export function Dashboard() {
                 </div>
               </div>
 
-              <div className="flex gap-4 mt-8">
+              <div className="flex gap-4 mt-8 relative z-10">
                 <Button variant="ghost" onClick={() => setShowNewProjectModal(false)} className="flex-1 bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 rounded-xl py-3">
                   İptal
                 </Button>
-                <Button onClick={handleCreateProject} className="flex-1 bg-primary-gradient hover:shadow-lg hover:shadow-indigo-500/25 rounded-xl py-3">
+                <Button onClick={handleCreateProject} variant="glow" className="flex-1 rounded-xl py-3">
                   Oluştur
                 </Button>
               </div>

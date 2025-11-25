@@ -5,7 +5,7 @@ import { Toaster, toast } from 'sonner'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import { motion } from 'framer-motion'
-import { Mail, Lock, Github } from 'lucide-react'
+import { Mail, Lock, Github, ArrowRight, Sparkles } from 'lucide-react'
 
 export function Login() {
   const { signIn, signInWithProvider } = useAuth()
@@ -38,8 +38,9 @@ export function Login() {
     <div className="min-h-screen flex items-center justify-center bg-premium-bg relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-600/20 blur-[100px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-600/20 blur-[100px]" />
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-600/20 blur-[100px] animate-pulse-slow" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-600/20 blur-[100px] animate-pulse-slow" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-[40%] left-[40%] w-[20%] h-[20%] rounded-full bg-indigo-600/10 blur-[80px] animate-float" />
       </div>
 
       <Toaster position="top-right" theme="dark" />
@@ -49,17 +50,20 @@ export function Login() {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md z-10 p-4"
       >
-        <div className="glass-panel rounded-2xl p-8 shadow-glass border border-glass-border">
+        <div className="glass-panel rounded-3xl p-8 shadow-2xl border border-glass-border relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
+
           <div className="text-center mb-8">
             <motion.div
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.1 }}
-              className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30"
+              transition={{ delay: 0.1, type: 'spring' }}
+              className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 relative group"
             >
-              <img src="/src/assets/logo.png" alt="Logo" className="w-10 h-10 brightness-0 invert" />
+              <div className="absolute inset-0 bg-white/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <img src="/src/assets/logo.png" alt="Logo" className="w-12 h-12 brightness-0 invert relative z-10" />
             </motion.div>
-            <h2 className="text-3xl font-bold text-premium-text mb-2">Hoş Geldiniz</h2>
+            <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">Hoş Geldiniz</h2>
             <p className="text-premium-muted">Ayazma ONE Core Panel'e giriş yapın</p>
           </div>
 
@@ -72,60 +76,60 @@ export function Login() {
               onChange={(e) => setEmail(e.target.value)}
               icon={<Mail className="w-4 h-4" />}
               required
+              className="bg-black/20 border-white/10 focus:border-indigo-500/50 rounded-xl"
             />
 
-            <Input
-              label="Şifre"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              icon={<Lock className="w-4 h-4" />}
-              required
-            />
-
-            <div className="flex items-center justify-between text-sm">
-              <Link
-                to="/forgot-password"
-                className="text-blue-400 hover:text-blue-300 transition-colors"
-              >
-                Şifremi unuttum
-              </Link>
-              <Link
-                to="/register"
-                className="text-blue-400 hover:text-blue-300 transition-colors"
-              >
-                Hesap oluştur
-              </Link>
+            <div className="space-y-1">
+              <Input
+                label="Şifre"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                icon={<Lock className="w-4 h-4" />}
+                required
+                className="bg-black/20 border-white/10 focus:border-indigo-500/50 rounded-xl"
+              />
+              <div className="flex justify-end">
+                <Link
+                  to="/forgot-password"
+                  className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  Şifremi unuttum
+                </Link>
+              </div>
             </div>
 
             <Button
               type="submit"
-              disabled={loading}
-              className="w-full bg-primary-gradient hover:opacity-90 shadow-lg shadow-blue-500/25 transition-opacity"
+              loading={loading}
+              variant="glow"
+              className="w-full py-3 rounded-xl text-lg font-semibold shadow-lg shadow-indigo-500/25"
+              icon={ArrowRight}
+              iconPosition="right"
             >
-              {loading ? 'Giriş yapılıyor...' : 'Giriş Yap'}
+              Giriş Yap
             </Button>
           </form>
 
           <div className="mt-8">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-glass-border" />
+                <div className="w-full border-t border-white/10" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-premium-card/80 text-premium-muted backdrop-blur-sm rounded">veya devam et</span>
+                <span className="px-4 bg-[#0f172a] text-gray-500 rounded-full border border-white/5">veya devam et</span>
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-3">
+            <div className="mt-6 grid grid-cols-2 gap-4">
               <Button
                 variant="secondary"
                 onClick={async () => {
                   const { error } = await signInWithProvider('google')
                   if (error) toast.error(error.message)
                 }}
-                className="w-full bg-white text-gray-900 hover:bg-gray-100"
+                className="w-full bg-white text-gray-900 hover:bg-gray-100 border-transparent rounded-xl"
                 type="button"
               >
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
@@ -154,12 +158,21 @@ export function Login() {
                   const { error } = await signInWithProvider('github')
                   if (error) toast.error(error.message)
                 }}
-                className="w-full bg-[#24292e] text-white hover:bg-[#2f363d] border-transparent"
+                className="w-full bg-[#24292e] text-white hover:bg-[#2f363d] border-transparent rounded-xl"
                 type="button"
               >
                 <Github className="w-5 h-5 mr-2" />
                 GitHub
               </Button>
+            </div>
+
+            <div className="mt-8 text-center">
+              <p className="text-sm text-gray-400">
+                Hesabınız yok mu?{' '}
+                <Link to="/register" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
+                  Hemen oluşturun
+                </Link>
+              </p>
             </div>
           </div>
         </div>

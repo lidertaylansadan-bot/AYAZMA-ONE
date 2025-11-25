@@ -48,49 +48,57 @@ export function StabilityQAPanel() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Avg Quality Score</CardTitle>
-                        <Activity className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
-                            {(metrics.evaluations.reduce((acc, curr) => acc + (curr.score_weighted || 0), 0) / (metrics.evaluations.length || 1)).toFixed(2)}
+                <Card
+                    header={
+                        <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <h3 className="text-sm font-medium text-white">Avg Quality Score</h3>
+                            <Activity className="h-4 w-4 text-gray-400" />
                         </div>
-                        <p className="text-xs text-muted-foreground">Last {metrics.evaluations.length} runs</p>
-                    </CardContent>
+                    }
+                    hover={false}
+                >
+                    <div className="text-2xl font-bold text-white">
+                        {(metrics.evaluations.reduce((acc, curr) => acc + (curr.score_weighted || 0), 0) / (metrics.evaluations.length || 1)).toFixed(2)}
+                    </div>
+                    <p className="text-xs text-gray-400">Last {metrics.evaluations.length} runs</p>
                 </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Auto-Fixes</CardTitle>
-                        <Wrench className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{metrics.autoFixes.length}</div>
-                        <p className="text-xs text-muted-foreground">Recent interventions</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Regression Tests</CardTitle>
-                        <ShieldCheck className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
-                            {metrics.regressionTests.filter((t: any) => t.last_status === 'pass').length} / {metrics.regressionTests.length}
+                <Card
+                    header={
+                        <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <h3 className="text-sm font-medium text-white">Auto-Fixes</h3>
+                            <Wrench className="h-4 w-4 text-gray-400" />
                         </div>
-                        <p className="text-xs text-muted-foreground">Passing tests</p>
-                    </CardContent>
+                    }
+                    hover={false}
+                >
+                    <div className="text-2xl font-bold text-white">{metrics.autoFixes.length}</div>
+                    <p className="text-xs text-gray-400">Recent interventions</p>
                 </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Self-Repairs</CardTitle>
-                        <RefreshCw className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{metrics.selfRepairs.length}</div>
-                        <p className="text-xs text-muted-foreground">Config updates</p>
-                    </CardContent>
+                <Card
+                    header={
+                        <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <h3 className="text-sm font-medium text-white">Regression Tests</h3>
+                            <ShieldCheck className="h-4 w-4 text-gray-400" />
+                        </div>
+                    }
+                    hover={false}
+                >
+                    <div className="text-2xl font-bold text-white">
+                        {metrics.regressionTests.filter((t: any) => t.last_status === 'pass').length} / {metrics.regressionTests.length}
+                    </div>
+                    <p className="text-xs text-gray-400">Passing tests</p>
+                </Card>
+                <Card
+                    header={
+                        <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <h3 className="text-sm font-medium text-white">Self-Repairs</h3>
+                            <RefreshCw className="h-4 w-4 text-gray-400" />
+                        </div>
+                    }
+                    hover={false}
+                >
+                    <div className="text-2xl font-bold text-white">{metrics.selfRepairs.length}</div>
+                    <p className="text-xs text-gray-400">Config updates</p>
                 </Card>
             </div>
 
