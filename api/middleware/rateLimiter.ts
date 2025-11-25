@@ -36,10 +36,10 @@ export const aiLimiter = rateLimit({
     limit: 20, // Limit each user to 20 AI requests per minute
     standardHeaders: true,
     legacyHeaders: false,
-    keyGenerator: (req) => {
-        // Use user ID if authenticated, otherwise IP
-        return (req as any).user?.id || req.ip
-    },
+    // keyGenerator: (req) => {
+    //     // Use user ID if authenticated, otherwise IP
+    //     return (req as any).user?.id || req.ip
+    // },
     message: {
         success: false,
         error: {

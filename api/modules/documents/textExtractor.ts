@@ -1,5 +1,6 @@
-// @ts-expect-error pdf-parse types are not compatible with ESM import
-import pdf from 'pdf-parse'
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const pdf = require('pdf-parse');
 import mammoth from 'mammoth'
 import { AppError } from '../../core/app-error.js'
 import { logger } from '../../core/logger.js'

@@ -14,7 +14,6 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 
 import app from './app.js';
 import { ensureBuckets } from './services/storageService.js';
-import { startCompressionWorker, stopCompressionWorker } from './jobs/compressionWorker.js';
 
 /**
  * start server with port
@@ -26,8 +25,8 @@ const server = app.listen(config.port, async () => {
     logger.info('Storage buckets ensured')
 
     // Start background workers
-    startCompressionWorker()
-    logger.info('Compression worker started')
+    // Workers are initialized in app.ts via initWorkers()
+    logger.info('Background workers started')
   } catch (e) {
     logger.error({ err: e }, 'Failed to initialize services')
   }
@@ -38,7 +37,6 @@ const server = app.listen(config.port, async () => {
  */
 process.on('SIGTERM', async () => {
   console.log('SIGTERM signal received');
-  await stopCompressionWorker();
   server.close(() => {
     console.log('Server closed');
     process.exit(0);
@@ -47,7 +45,6 @@ process.on('SIGTERM', async () => {
 
 process.on('SIGINT', async () => {
   console.log('SIGINT signal received');
-  await stopCompressionWorker();
   server.close(() => {
     console.log('Server closed');
     process.exit(0);

@@ -4,9 +4,9 @@
  */
 
 import { Queue, QueueEvents } from 'bullmq'
-import { redisConnection } from '../../config/redis'
-import type { CompressionStrategy } from '../optical-compression/types'
-import { logger } from '../../core/logger'
+import { redisConnection } from '../config/redis.js'
+import type { CompressionStrategy } from '../modules/optical-compression/types.js'
+import { logger } from '../core/logger.js'
 
 // Job data interface
 export interface CompressionJobData {

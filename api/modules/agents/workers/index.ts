@@ -4,7 +4,7 @@ import { workflowWorker } from './WorkflowWorker.js';
 import { contentWorker } from './ContentWorker.js';
 import { logger } from '../../../core/logger.js';
 // Import compression workers starter
-import { startAllWorkers } from '../../../jobs/index.js';
+import { initWorkers as startAllWorkers } from '../../../jobs/index.js';
 
 export const initWorkers = () => {
     try {

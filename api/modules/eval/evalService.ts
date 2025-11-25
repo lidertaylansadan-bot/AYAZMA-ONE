@@ -306,11 +306,11 @@ Be objective and precise. Only output the JSON, no additional text.`
         }
 
         const sum = evaluations.reduce(
-            (acc, eval) => ({
-                helpfulness: acc.helpfulness + eval.scores.helpfulness,
-                factuality: acc.factuality + eval.scores.factuality,
-                coherence: acc.coherence + eval.scores.coherence,
-                safety: acc.safety + eval.scores.safety
+            (acc, evaluation) => ({
+                helpfulness: acc.helpfulness + evaluation.scores.helpfulness,
+                factuality: acc.factuality + evaluation.scores.factuality,
+                coherence: acc.coherence + evaluation.scores.coherence,
+                safety: acc.safety + evaluation.scores.safety
             }),
             { helpfulness: 0, factuality: 0, coherence: 0, safety: 0 }
         )
