@@ -7,6 +7,7 @@ import { callLLM } from '../ai/aiRouter.js'
 import { supabase } from '../../config/supabase.js'
 import { logger } from '../../core/logger.js'
 import type { EvalResult } from '../eval/types.js'
+import { emitAutoFixCompleted } from '../../core/telemetry/events.js'
 
 export interface AutoFixInput {
     agentRunId: string
@@ -39,7 +40,9 @@ export class AutoFixAgent {
 
             // Call LLM to generate fix
             const response = await callLLM({
-                provider: 'openai',
+                taskType: 'generic_chat',
+                prompt: '', // Using messages override
+                providerOverride: 'openai',
                 model: 'gpt-4o', // Use a capable model for fixing
                 messages: [
                     {
@@ -56,10 +59,18 @@ export class AutoFixAgent {
             })
 
             // Parse the response
-            const result = this.parseFixResponse(response.content)
+            const result = this.parseFixResponse(response.text)
 
             // Save the fix to database
             await this.saveFix(input, result)
+
+            // Emit telemetry event
+            await emitAutoFixCompleted(input.projectId, input.userId, {
+                agentRunId: input.agentRunId,
+                taskType: input.taskType,
+                evalScoreBefore: input.evalResult.scores.overall || 0,
+                fixStrategy: 'llm-rewrite'
+            })
 
             logger.info({ agentRunId: input.agentRunId }, 'Auto-fix completed')
 

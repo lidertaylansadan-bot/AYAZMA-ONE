@@ -31,7 +31,12 @@ export type ContextEventType =
     | 'context_cache_hit'
     | 'context_cache_miss';
 
-export type TelemetryEventType = CompressionEventType | OcrEventType | ContextEventType;
+/**
+ * Auto-fix telemetry event types
+ */
+export type AutoFixEventType = 'auto_fix_completed';
+
+export type TelemetryEventType = CompressionEventType | OcrEventType | ContextEventType | AutoFixEventType;
 
 /**
  * Base telemetry event payload
@@ -79,6 +84,17 @@ export interface ContextEventMetadata {
     totalTokens?: number;
     sources?: Record<string, number>;
     durationMs?: number;
+}
+
+/**
+ * Auto-fix event metadata
+ */
+export interface AutoFixEventMetadata {
+    agentRunId: string;
+    taskType: string;
+    evalScoreBefore: number;
+    improvementPercentage?: number;
+    fixStrategy?: string;
 }
 
 /**
@@ -205,6 +221,23 @@ export async function emitContextBuilt(
 ): Promise<void> {
     await emitTelemetryEvent({
         eventType: 'context_built',
+        projectId,
+        userId,
+        metadata,
+        timestamp: new Date()
+    });
+}
+
+/**
+ * Emits an auto-fix completed event
+ */
+export async function emitAutoFixCompleted(
+    projectId: string,
+    userId: string,
+    metadata: AutoFixEventMetadata
+): Promise<void> {
+    await emitTelemetryEvent({
+        eventType: 'auto_fix_completed',
         projectId,
         userId,
         metadata,

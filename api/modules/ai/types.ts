@@ -20,6 +20,12 @@ export interface AiRouterInput {
   userId?: string
   projectId?: string
   agentRunId?: string
+
+  // Low-level overrides
+  messages?: any[]
+  model?: string
+  temperature?: number
+  maxTokens?: number
 }
 
 export interface AiRouterOutput {

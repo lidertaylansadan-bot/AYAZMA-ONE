@@ -1,0 +1,206 @@
+{
+    "version": "1.0",
+    "default_weights": {
+        "helpfulness": 0.4,
+        "factuality": 0.4,
+        "coherence": 0.1,
+        "safety": 0.1
+    },
+    "tasks": {
+        "analysis": {
+            "metrics": [
+                {
+                    "name": "depth",
+                    "description": "Depth of analysis and insight",
+                    "weight": 0.3
+                },
+                {
+                    "name": "clarity",
+                    "description": "Clarity of explanation",
+                    "weight": 0.2
+                },
+                {
+                    "name": "completeness",
+                    "description": "Coverage of all required aspects",
+                    "weight": 0.3
+                },
+                {
+                    "name": "actionability",
+                    "description": "Usefulness of recommendations",
+                    "weight": 0.2
+                }
+            ],
+            "threshold": 0.7
+        },
+        "design": {
+            "metrics": [
+                {
+                    "name": "creativity",
+                    "description": "Novelty and innovation of the design",
+                    "weight": 0.3
+                },
+                {
+                    "name": "usability",
+                    "description": "User-friendliness and accessibility",
+                    "weight": 0.3
+                },
+                {
+                    "name": "feasibility",
+                    "description": "Technical feasibility of implementation",
+                    "weight": 0.2
+                },
+                {
+                    "name": "aesthetics",
+                    "description": "Visual appeal and style alignment",
+                    "weight": 0.2
+                }
+            ],
+            "threshold": 0.75
+        },
+        "workflow": {
+            "metrics": [
+                {
+                    "name": "efficiency",
+                    "description": "Optimality of the workflow steps",
+                    "weight": 0.4
+                },
+                {
+                    "name": "robustness",
+                    "description": "Handling of edge cases and errors",
+                    "weight": 0.3
+                },
+                {
+                    "name": "clarity",
+                    "description": "Understandability of the process flow",
+                    "weight": 0.3
+                }
+            ],
+            "threshold": 0.8
+        },
+        "content_generation": {
+            "metrics": [
+                {
+                    "name": "engagement",
+                    "description": "Ability to capture and hold attention",
+                    "weight": 0.3
+                },
+                {
+                    "name": "relevance",
+                    "description": "Alignment with the target audience and topic",
+                    "weight": 0.3
+                },
+                {
+                    "name": "tone",
+                    "description": "Appropriateness of tone and voice",
+                    "weight": 0.2
+                },
+                {
+                    "name": "originality",
+                    "description": "Uniqueness of the content",
+                    "weight": 0.2
+                }
+            ],
+            "threshold": 0.7
+        },
+        "code_generation": {
+            "metrics": [
+                {
+                    "name": "correctness",
+                    "description": "Functional correctness and bug-free code",
+                    "weight": 0.4
+                },
+                {
+                    "name": "readability",
+                    "description": "Code style, naming, and comments",
+                    "weight": 0.2
+                },
+                {
+                    "name": "efficiency",
+                    "description": "Performance and resource usage",
+                    "weight": 0.2
+                },
+                {
+                    "name": "security",
+                    "description": "Absence of vulnerabilities",
+                    "weight": 0.2
+                }
+            ],
+            "threshold": 0.85
+        },
+        "legal_document": {
+            "metrics": [
+                {
+                    "name": "accuracy",
+                    "description": "Legal accuracy and compliance",
+                    "weight": 0.5
+                },
+                {
+                    "name": "clarity",
+                    "description": "Unambiguous language",
+                    "weight": 0.3
+                },
+                {
+                    "name": "completeness",
+                    "description": "Inclusion of all necessary clauses",
+                    "weight": 0.2
+                }
+            ],
+            "threshold": 0.9
+        },
+        "web_research": {
+            "metrics": [
+                {
+                    "name": "relevance",
+                    "description": "Relevance of sources to the query",
+                    "weight": 0.4
+                },
+                {
+                    "name": "credibility",
+                    "description": "Reliability of the sources",
+                    "weight": 0.4
+                },
+                {
+                    "name": "freshness",
+                    "description": "Timeliness of the information",
+                    "weight": 0.2
+                }
+            ],
+            "threshold": 0.7
+        },
+        "data_extraction": {
+            "metrics": [
+                {
+                    "name": "accuracy",
+                    "description": "Precision of extracted data",
+                    "weight": 0.6
+                },
+                {
+                    "name": "completeness",
+                    "description": "Extraction of all target fields",
+                    "weight": 0.4
+                }
+            ],
+            "threshold": 0.9
+        },
+        "decision_support": {
+            "metrics": [
+                {
+                    "name": "logic",
+                    "description": "Soundness of reasoning",
+                    "weight": 0.4
+                },
+                {
+                    "name": "objectivity",
+                    "description": "Lack of bias",
+                    "weight": 0.3
+                },
+                {
+                    "name": "comprehensiveness",
+                    "description": "Consideration of alternatives",
+                    "weight": 0.3
+                }
+            ],
+            "threshold": 0.8
+        }
+    }
+}
