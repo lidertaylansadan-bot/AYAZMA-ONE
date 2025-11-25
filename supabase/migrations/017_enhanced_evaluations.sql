@@ -20,11 +20,11 @@ CREATE INDEX IF NOT EXISTS idx_agent_evaluations_weighted_score ON agent_evaluat
 -- Update existing rows to have default values
 UPDATE agent_evaluations
 SET 
-    task_type = 'general',
-    metric_scores = '{}',
-    needs_fix = false,
-    weighted_score = COALESCE(score, 0.5)
-WHERE task_type IS NULL;
+    task_type = COALESCE(task_type, 'general'),
+    metric_scores = COALESCE(metric_scores, '{}'),
+    needs_fix = COALESCE(needs_fix, false),
+    weighted_score = COALESCE(weighted_score, (score_factuality + score_coherence + score_safety + (score_helpfulness / 100)) / 4)
+WHERE task_type IS NULL OR weighted_score IS NULL;
 
 -- Add comment for documentation
 COMMENT ON COLUMN agent_evaluations.task_type IS 'Type of task being evaluated (analysis, design, workflow, etc.)';
