@@ -16,6 +16,8 @@ const ProjectDetail = lazy(() => import("./pages/ProjectDetail"))
 const AnalyticsAi = lazy(() => import("./pages/AnalyticsAi"))
 const ProjectContentPlanner = lazy(() => import("./pages/ProjectContentPlanner"))
 const Admin = lazy(() => import("./pages/Admin"))
+const ControlPanel = lazy(() => import("./pages/ControlPanel"))
+const AuditLog = lazy(() => import("./pages/AuditLog"))
 
 function AppRoutes() {
   return (
@@ -47,6 +49,12 @@ function AppRoutes() {
 
         {/* Admin Route */}
         <Route path="/admin" element={<Admin />} />
+
+        {/* Control Panel Route */}
+        <Route path="/control-panel" element={<ProtectedRoute><ControlPanel /></ProtectedRoute>} />
+
+        {/* Audit Log Route */}
+        <Route path="/audit-log" element={<ProtectedRoute><AuditLog /></ProtectedRoute>} />
       </Routes>
     </Suspense>
   )

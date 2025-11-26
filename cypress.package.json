@@ -1,0 +1,15 @@
+{
+    "name": "ayazma-one-e2e",
+    "version": "1.0.0",
+    "description": "E2E tests for AYAZMA-ONE",
+    "scripts": {
+        "cypress:open": "cypress open",
+        "cypress:run": "cypress run",
+        "test:e2e": "cypress run --browser chrome",
+        "test:e2e:headed": "cypress run --browser chrome --headed"
+    },
+    "devDependencies": {
+        "cypress": "^13.6.0",
+        "@testing-library/cypress": "^10.0.1"
+    }
+}
