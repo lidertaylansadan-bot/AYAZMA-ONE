@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import { Suspense, lazy } from "react"
 import { ProtectedRoute } from "./components/ProtectedRoute"
+import { ToastProvider } from "./components/ui/ToastProvider"
 import Spinner from "./components/ui/Spinner"
 
 // Lazy load pages
@@ -62,8 +63,10 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <Router>
-      <AppRoutes />
-    </Router>
+    <ToastProvider>
+      <Router>
+        <AppRoutes />
+      </Router>
+    </ToastProvider>
   )
 }
