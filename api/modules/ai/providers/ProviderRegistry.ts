@@ -1,6 +1,7 @@
 import type { AiProvider } from './AiProvider.js'
 import { OpenAiProvider } from './OpenAiProvider.js'
 import { GeminiProvider } from './GeminiProvider.js'
+import { OllamaProvider } from './OllamaProvider.js'
 import { AppError } from '../../../core/app-error.js'
 
 class ProviderRegistry {
@@ -24,5 +25,6 @@ class ProviderRegistry {
 const registry = new ProviderRegistry()
 registry.register(new GeminiProvider())
 registry.register(new OpenAiProvider())
+registry.register(new OllamaProvider())
 
 export const providerRegistry = registry

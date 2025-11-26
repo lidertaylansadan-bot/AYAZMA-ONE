@@ -29,6 +29,7 @@ import feedbackRouter from './modules/feedback/feedbackRouter.js'
 import { optimizationRouter } from './modules/optimization/optimizationRouter.js'
 import compressionRoutes from './routes/compression.js'
 import auditRoutes from './routes/audit.js'
+import notificationRoutes from './routes/notifications.js'
 
 // for esm mode
 const __filename = fileURLToPath(import.meta.url)
@@ -79,6 +80,7 @@ app.use('/api/feedback', feedbackRoutes)
 app.use('/api/optimization', optimizationRouter)
 app.use('/api/compression', compressionRoutes)
 app.use('/api/audit', auditRoutes)
+app.use('/api/notifications', notificationRoutes)
 
 // Temporary basic health endpoint
 app.get('/api/health', (req: Request, res: Response) => {
