@@ -19,6 +19,8 @@ const ProjectContentPlanner = lazy(() => import("./pages/ProjectContentPlanner")
 const Admin = lazy(() => import("./pages/Admin"))
 const ControlPanel = lazy(() => import("./pages/ControlPanel"))
 const AuditLog = lazy(() => import("./pages/AuditLog"))
+const Settings = lazy(() => import("./pages/Settings"))
+const LandingPage = lazy(() => import("./pages/LandingPage"))
 
 function AppRoutes() {
   return (
@@ -26,7 +28,7 @@ function AppRoutes() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/" element={<Navigate to="/cockpit" replace />} />
+        <Route path="/" element={<LandingPage />} />
 
         <Route path="/cockpit" element={<ProtectedRoute><Cockpit /></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -56,6 +58,9 @@ function AppRoutes() {
 
         {/* Audit Log Route */}
         <Route path="/audit-log" element={<ProtectedRoute><AuditLog /></ProtectedRoute>} />
+
+        {/* Settings Route */}
+        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       </Routes>
     </Suspense>
   )

@@ -51,7 +51,7 @@ export default function Cockpit() {
     }
 
     return (
-        <DashboardLayout title="Cockpit">
+        <DashboardLayout>
             <Toaster position="top-right" theme="dark" />
 
             <div className="mb-8 flex items-center justify-between">

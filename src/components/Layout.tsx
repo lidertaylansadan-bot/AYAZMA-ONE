@@ -17,7 +17,8 @@ import {
   Activity,
   Menu,
   X,
-  ChevronLeft
+  ChevronLeft,
+  Gauge
 } from 'lucide-react'
 
 interface LayoutProps {
@@ -31,6 +32,7 @@ export function Layout({ children }: LayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const navigation = [
+    { name: 'Cockpit', href: '/cockpit', icon: Gauge },
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Projelerim', href: '/projects', icon: FolderOpen },
     { name: 'Control Panel', href: '/control-panel', icon: Activity },
@@ -92,8 +94,8 @@ export function Layout({ children }: LayoutProps) {
                 key={item.name}
                 to={item.href}
                 className={`flex items-center ${isSidebarOpen ? 'px-4' : 'px-0 justify-center'} py-3 text-sm font-medium rounded-lg transition-all ${isActive(item.href)
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 title={!isSidebarOpen ? item.name : undefined}
               >
@@ -151,8 +153,8 @@ export function Layout({ children }: LayoutProps) {
                       to={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${isActive(item.href)
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'text-gray-700 hover:bg-gray-100'
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100'
                         }`}
                     >
                       <Icon className="w-5 h-5 mr-3" />
