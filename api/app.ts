@@ -28,6 +28,7 @@ import morgan from 'morgan'
 import feedbackRouter from './modules/feedback/feedbackRouter.js'
 import { optimizationRouter } from './modules/optimization/optimizationRouter.js'
 import compressionRoutes from './routes/compression.js'
+import auditRoutes from './routes/audit.js'
 
 // for esm mode
 const __filename = fileURLToPath(import.meta.url)
@@ -77,6 +78,7 @@ app.use('/api', contentRoutes)
 app.use('/api/feedback', feedbackRoutes)
 app.use('/api/optimization', optimizationRouter)
 app.use('/api/compression', compressionRoutes)
+app.use('/api/audit', auditRoutes)
 
 // Temporary basic health endpoint
 app.get('/api/health', (req: Request, res: Response) => {

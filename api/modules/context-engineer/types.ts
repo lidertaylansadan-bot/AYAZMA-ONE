@@ -11,50 +11,14 @@ export type ContextSourceType =
     | 'compressed_segment'
     | 'agent_history'
     | 'user_input'
-    | 'system'
-
-export type TaskType =
-    | 'design_spec'
-    | 'workflow_design'
-    | 'content_strategy'
-    | 'general'
-
-export interface ContextSlice {
-    id: string
-    type: ContextSourceType
-    content: string
-    weight: number
-    sourceMeta?: {
-        documentId?: string
-        documentTitle?: string
-        chunkId?: string
-        chunkIndex?: number
-        segmentId?: string
-        segmentIndex?: number
-        agentRunId?: string
-        similarity?: number
-    }
-}
-
-export interface ContextEngineerInput {
-    projectId: string
-    userId: string
-    taskType: TaskType
-    userGoal?: string
-    maxTokens?: number
-    includeHistory?: boolean
-    contextStrategy?: ContextStrategy
-}
 
 export interface ContextEngineerOutput {
+    contextId: string
     systemPrompt: string
     userPrompt: string
-    contextSlices: ContextSlice[]
-    totalTokens: number
+    slices: ContextSlice[]
     metadata: {
-        projectId: string
-        taskType: TaskType
-        sliceCount: number
+        tokenCount: number
         sources: Record<ContextSourceType, number>
     }
 }

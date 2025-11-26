@@ -8,6 +8,7 @@ import Alert from '../components/ui/Alert'
 import Input from '../components/ui/Input'
 import Select from '../components/ui/Select'
 import DocumentsTab from '../components/project/DocumentsTab'
+import AgentPermissionsPanel from '../components/project/AgentPermissionsPanel'
 import { getProject, getProjectAiSettings, updateProjectAiSettings, type ProjectAiSettings } from '../api/projects'
 import { getProjectAiUsageSummary, type ProjectAiUsageSummary } from '../api/telemetry'
 import { getProjectOptimizationSuggestion, applyProjectOptimization } from '../api/optimizer'
@@ -265,6 +266,8 @@ export default function ProjectDetail() {
 
           {activeTab === 'settings' && (
             <div className="space-y-6">
+              <AgentPermissionsPanel projectId={project.id} />
+
               <Card>
                 <div className="text-lg font-semibold mb-4">AI Ayarları</div>
                 {settingsLoading && <Spinner />}

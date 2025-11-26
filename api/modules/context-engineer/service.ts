@@ -15,6 +15,9 @@ import type {
     ContextSourceType,
     ProjectMetadata,
 } from './types.js'
+import { historyManager } from './HistoryManager.js'
+import { permissionService } from '../security/PermissionService.js'
+import { contextCompressor } from './ContextCompressor.js'
 
 export class ContextEngineerService {
     private readonly MAX_CONTEXT_TOKENS = 8000 // Reserve tokens for response
@@ -30,10 +33,19 @@ export class ContextEngineerService {
             taskType,
             userGoal,
             query,
-            contextWindow = this.MAX_CONTEXT_TOKENS
+            maxTokens = this.MAX_CONTEXT_TOKENS,
+            agentName
         } = input
 
         try {
+            // 0. Check Permissions
+            if (agentName) {
+                const hasAccess = await permissionService.checkAgentAccess(userId, projectId, agentName)
+                if (!hasAccess) {
+                    throw new AppError('PERMISSION_DENIED', `Agent ${agentName} does not have access to this project`, 403)
+                }
+            }
+
             // 1. Fetch Project Metadata
             const project = await this.getProjectMetadata(projectId)
 
@@ -62,7 +74,7 @@ export class ContextEngineerService {
             slices = [...slices, ...historySlices]
 
             // 6. Prioritize and Trim
-            const prioritizedSlices = this.prioritizeSlices(slices, contextWindow)
+            const prioritizedSlices = await this.prioritizeSlices(slices, maxTokens)
 
             // 7. Generate Prompts
             const { systemPrompt, userPrompt } = this.generatePrompts(
@@ -102,143 +114,92 @@ export class ContextEngineerService {
         }
     }
 
-    /**
-     * Get project metadata from database
-     */
     private async getProjectMetadata(projectId: string): Promise<ProjectMetadata> {
         const { data, error } = await supabase
             .from('projects')
-            .select('id, name, description, sector, project_type, created_at')
+            .select('*')
             .eq('id', projectId)
             .single()
 
-        if (error || !data) {
-            throw new AppError('PROJECT_NOT_FOUND', 'Project not found', 404)
-        }
-
-        return {
-            id: data.id,
-            name: data.name,
-            description: data.description,
-            sector: data.sector,
-            projectType: data.project_type,
-            createdAt: data.created_at,
-        }
+        if (error) throw error
+        return data
     }
 
-    /**
-     * Create context slices from project metadata
-     */
     private createProjectMetaSlices(project: ProjectMetadata): ContextSlice[] {
-        const slices: ContextSlice[] = []
-
-        // Main project info
-        slices.push({
-            id: `project_meta_${project.id}`,
+        return [{
+            id: `meta_${project.id}`,
             type: 'project_meta',
-            content: `Project: ${project.name}\nSector: ${project.sector}\nType: ${project.projectType}${project.description ? `\nDescription: ${project.description}` : ''
-                }`,
-            weight: 1.0, // Highest weight
-        })
-
-        return slices
+            content: `Project: ${project.name}\nDescription: ${project.description}\nSector: ${project.sector}\nType: ${project.projectType}`,
+            weight: 1.0,
+            sourceMeta: {
+                documentTitle: 'Project Metadata'
+            }
+        }]
     }
 
-    /**
-     * Create context slices from RAG search results
-     */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private createDocumentSlices(ragResults: any[]): ContextSlice[] {
-        return ragResults.map((result) => ({
-            id: `doc_${result.chunkId}`,
-            type: 'document' as ContextSourceType,
-            content: result.text,
-            weight: result.similarity * 0.85, // Slightly higher weight to prioritize specific hits
+    private createDocumentSlices(ragResults: { id: string; content: string; document_id: string; similarity: number }[]): ContextSlice[] {
+        return ragResults.map(r => ({
+            id: `doc_${r.id}`,
+            type: 'document',
+            content: r.content,
+            weight: r.similarity, // Use similarity as weight
             sourceMeta: {
-                documentId: result.documentId,
-                documentTitle: result.documentTitle,
-                chunkId: result.chunkId,
-                chunkIndex: result.chunkIndex,
-                similarity: result.similarity,
-            },
+                documentId: r.document_id,
+                similarity: r.similarity
+            }
         }))
     }
 
-    /**
-     * Fetch compressed segments for a project
-     */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private async getCompressedSegments(projectId: string): Promise<any[]> {
-        const { data, error } = await supabase
-            .from('document_compressed_segments')
-            .select(`
-                id,
-                segment_index,
-                payload,
-                document_compressed_views!inner(
-                    document_id,
-                    project_documents!inner(project_id)
-                )
-            `)
-            .eq('document_compressed_views.project_documents.project_id', projectId)
-            .order('created_at', { ascending: false })
-            .limit(20) // Limit to recent segments to avoid overload
-
-        if (error) {
-            logger.warn({ err: error }, 'Failed to fetch compressed segments')
-            return []
-        }
-        return data || []
-    }
-
-    /**
-     * Create context slices from compressed segments
-     */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private createCompressedSlices(segments: any[]): ContextSlice[] {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return segments.map((seg: any) => {
-            // Extract summary from payload
-            const payload = seg.payload
-            const content = payload.summary ||
-                (Array.isArray(payload.keyPoints) ? payload.keyPoints.join('\n') : '') ||
-                JSON.stringify(payload)
-
-            return {
-                id: `seg_${seg.id}`,
-                type: 'compressed_segment' as ContextSourceType,
-                content: `[Compressed Summary]\n${content}`,
-                weight: 0.5, // Medium weight for global context
-                sourceMeta: {
-                    segmentId: seg.id,
-                    segmentIndex: seg.segment_index,
-                    documentId: seg.document_compressed_views.document_id,
-                },
-            }
-        })
-    }
-
-    /**
-     * Get agent history (optional, for future enhancement)
-     */
-    private async getAgentHistory(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        _projectId: string,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        _taskType: string
-    ): Promise<ContextSlice[]> {
-        // For MVP, return empty array
-        // In future, fetch recent successful agent runs
+    private async getCompressedSegments(_projectId: string): Promise<{ id: string; content: string }[]> {
+        // Placeholder for fetching pre-computed compressed segments
+        // In a real implementation, this would query a 'context_segments' table
         return []
     }
 
+    private createCompressedSlices(segments: { id: string; content: string }[]): ContextSlice[] {
+        return segments.map(s => ({
+            id: `seg_${s.id}`,
+            type: 'compressed_segment',
+            content: s.content,
+            weight: 0.8,
+            sourceMeta: {
+                segmentId: s.id
+            }
+        }))
+    }
+
+    private async getAgentHistory(
+        projectId: string,
+        _taskType: string
+    ): Promise<ContextSlice[]> {
+        try {
+            // Using taskType to filter history if needed, currently fetching all recent
+            const history = await historyManager.getProjectHistory(projectId, 5)
+
+            return history.map(entry => ({
+                id: `hist_${entry.id}`,
+                type: 'agent_history' as ContextSourceType,
+                content: `[Previous Agent Action: ${entry.agentName}]\nTask: ${entry.taskType}\nInput: ${JSON.stringify(entry.input)}\nOutput: ${JSON.stringify(entry.output)}`,
+                weight: 0.6,
+                sourceMeta: {
+                    agentName: entry.agentName,
+                    activityId: entry.id
+                }
+            }))
+        } catch (error) {
+            logger.warn({ err: error, projectId }, 'Failed to fetch agent history')
+            return []
+        }
+    }
+
     /**
-     * Prioritize and trim slices to fit token budget
+     * Prioritize and trim slices to fit token budget.
+     * Compresses low-priority slices if budget is tight.
      */
-    private prioritizeSlices(
+    private async prioritizeSlices(
         slices: ContextSlice[],
         maxTokens: number
-    ): ContextSlice[] {
+    ): Promise<ContextSlice[]> {
         // Sort by weight (descending)
         const sorted = [...slices].sort((a, b) => b.weight - a.weight)
 
@@ -252,8 +213,31 @@ export class ContextEngineerService {
                 selected.push(slice)
                 currentTokens += sliceTokens
             } else {
-                // Token budget exceeded
-                break
+                // Token budget exceeded. Try to compress if weight is decent (> 0.4)
+                if (slice.weight > 0.4) {
+                    const remainingTokens = Math.max(100, maxTokens - currentTokens)
+                    // Only compress if we have at least 100 tokens left
+                    if (remainingTokens >= 100) {
+                        try {
+                            const compressedContent = await contextCompressor.compress(slice.content, remainingTokens)
+                            const compressedTokens = this.estimateTokens(compressedContent)
+
+                            if (currentTokens + compressedTokens <= maxTokens) {
+                                selected.push({
+                                    ...slice,
+                                    content: compressedContent,
+                                    sourceMeta: { ...slice.sourceMeta, compressed: true }
+                                })
+                                currentTokens += compressedTokens
+                                continue // Successfully added compressed slice
+                            }
+                        } catch (err) {
+                            logger.warn({ err }, 'Slice compression failed, skipping slice')
+                        }
+                    }
+                }
+                // If we can't compress or fit, we skip this slice (and likely subsequent ones)
+                continue
             }
         }
 

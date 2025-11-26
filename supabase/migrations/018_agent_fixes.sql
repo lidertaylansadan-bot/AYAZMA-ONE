@@ -1,6 +1,8 @@
 -- Migration: Agent Fixes Table
 -- Stores auto-fix attempts and results for low-quality agent outputs
 
+DROP TABLE IF EXISTS agent_fixes CASCADE;
+
 CREATE TABLE IF NOT EXISTS agent_fixes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     agent_run_id UUID NOT NULL REFERENCES agent_runs(id) ON DELETE CASCADE,

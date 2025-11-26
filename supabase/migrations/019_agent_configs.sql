@@ -1,6 +1,8 @@
 -- Migration: Agent Configs Table
 -- Stores versioned agent configurations for self-repair and optimization
 
+DROP TABLE IF EXISTS agent_configs CASCADE;
+
 CREATE TABLE IF NOT EXISTS agent_configs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     agent_name TEXT NOT NULL,
@@ -16,11 +18,13 @@ CREATE TABLE IF NOT EXISTS agent_configs (
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     created_by UUID REFERENCES auth.users(id),
-    replaced_by UUID REFERENCES agent_configs(id) ON DELETE SET NULL,
-    
-    -- Ensure unique active version per agent
-    CONSTRAINT unique_active_agent UNIQUE (agent_name, is_active) WHERE is_active = true
+    replaced_by UUID REFERENCES agent_configs(id) ON DELETE SET NULL
 );
+
+-- Ensure unique active version per agent using partial unique index
+CREATE UNIQUE INDEX IF NOT EXISTS idx_agent_configs_unique_active 
+ON agent_configs(agent_name) 
+WHERE is_active = true;
 
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_agent_configs_name ON agent_configs(agent_name);
