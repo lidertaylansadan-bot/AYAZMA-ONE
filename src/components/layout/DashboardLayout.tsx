@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, FolderOpen, Settings, LogOut, User, Bot, BarChart3 } from 'lucide-react'
+import { LayoutDashboard, FolderOpen, Settings, LogOut, User, Bot, BarChart3, Gauge } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { motion } from 'framer-motion'
 
@@ -10,7 +10,7 @@ export default function DashboardLayout({ children, title }: Props) {
   const { signOut } = useAuth()
   const location = useLocation()
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Cockpit', href: '/cockpit', icon: Gauge },
     { name: 'Projelerim', href: '/projects', icon: FolderOpen },
     { name: 'AI Playground', href: '/ai', icon: Bot },
     { name: 'Agents', href: '/agents', icon: Bot },

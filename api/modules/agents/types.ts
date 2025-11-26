@@ -28,3 +28,14 @@ export interface AgentRun {
   createdAt: string
   updatedAt: string
 }
+
+export interface ContextSlice {
+  type: string
+  content: string
+  weight: number
+  sourceMeta?: {
+    documentId?: string
+    chunkId?: string
+    [key: string]: any
+  }
+}

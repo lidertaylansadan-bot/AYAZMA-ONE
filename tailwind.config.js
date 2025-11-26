@@ -16,9 +16,9 @@ export default {
           active: "rgba(255, 255, 255, 0.15)",
         },
         premium: {
-          bg: "#020617", // Slate 950
-          card: "#0f172a", // Slate 900
-          text: "#f8fafc", // Slate 50
+          bg: "var(--bg-premium)",
+          card: "#0f172a", // Slate 900 - Keep fixed for now or variable if needed
+          text: "var(--text-premium)",
           muted: "#94a3b8", // Slate 400
           accent: "#6366f1", // Indigo 500
           success: "#10b981", // Emerald 500

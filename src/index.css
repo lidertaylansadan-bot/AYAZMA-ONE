@@ -12,6 +12,16 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+    /* Light mode variables */
+    --bg-premium: #ffffff;
+    --text-premium: #0f172a;
+  }
+
+  .dark {
+    /* Dark mode variables */
+    --bg-premium: #020617;
+    --text-premium: #f8fafc;
   }
 
   body {
@@ -22,6 +32,10 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     @apply bg-premium-bg text-premium-text min-h-screen selection:bg-indigo-500/30 selection:text-indigo-200;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .dark body {
     background-image:
       radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08), transparent 25%),
       radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 25%);

@@ -4,8 +4,13 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { Layout } from '../components/Layout'
-import { Search, Filter, Calendar, Download, Activity } from 'lucide-react'
+import DashboardLayout from '../components/layout/DashboardLayout'
+import { Search, Filter, Calendar, Download, Activity, FileText } from 'lucide-react'
+import { GradientButton } from '../components/ui/GradientButton'
+import Input from '../components/ui/Input'
+import Select from '../components/ui/Select'
+import Spinner from '../components/ui/Spinner'
+import { motion } from 'framer-motion'
 
 interface AuditActivity {
     id: string
@@ -74,92 +79,93 @@ export default function AuditLog() {
     }
 
     return (
-        <Layout>
+        <DashboardLayout>
             <div className="space-y-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Audit Log</h1>
-                        <p className="text-gray-600 mt-1">
+                        <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
+                            <div className="p-2 rounded-xl bg-gradient-to-br from-orange-500/20 to-red-500/20 border border-orange-500/20">
+                                <FileText className="w-8 h-8 text-orange-400" />
+                            </div>
+                            Audit Log
+                        </h1>
+                        <p className="text-gray-400">
                             View and analyze agent activity history
                         </p>
                     </div>
-                    <button
+                    <GradientButton
                         onClick={exportToCSV}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        icon={Download}
+                        variant="secondary"
                     >
-                        <Download className="w-4 h-4" />
                         Export CSV
-                    </button>
+                    </GradientButton>
                 </div>
 
                 {/* Filters */}
-                <div className="bg-white rounded-lg shadow p-6">
-                    <div className="flex items-center gap-2 mb-4">
-                        <Filter className="w-5 h-5 text-gray-400" />
-                        <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
+                <div className="glass-panel p-6 rounded-2xl border border-white/5">
+                    <div className="flex items-center gap-2 mb-6">
+                        <Filter className="w-5 h-5 text-indigo-400" />
+                        <h2 className="text-lg font-semibold text-white">Filters</h2>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Search
-                            </label>
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                <input
-                                    type="text"
-                                    placeholder="Search activities..."
-                                    value={filters.search}
-                                    onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                            </div>
+                        <div className="relative">
+                            <Input
+                                label="Search"
+                                placeholder="Search activities..."
+                                value={filters.search}
+                                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                                icon={<Search className="w-4 h-4" />}
+                                className="bg-black/20 border-white/10 focus:border-indigo-500/50"
+                            />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
                                 Agent
                             </label>
-                            <select
+                            <Select
                                 value={filters.agentName}
                                 onChange={(e) => setFilters({ ...filters, agentName: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            >
-                                <option value="">All Agents</option>
-                                <option value="design_spec">Design Spec</option>
-                                <option value="workflow_designer">Workflow Designer</option>
-                                <option value="content_strategist">Content Strategist</option>
-                                <option value="orchestrator">Orchestrator</option>
-                            </select>
+                                options={[
+                                    { value: '', label: 'All Agents' },
+                                    { value: 'design_spec', label: 'Design Spec' },
+                                    { value: 'workflow_designer', label: 'Workflow Designer' },
+                                    { value: 'content_strategist', label: 'Content Strategist' },
+                                    { value: 'orchestrator', label: 'Orchestrator' }
+                                ]}
+                                className="bg-black/20 border-white/10 focus:border-indigo-500/50"
+                            />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
                                 Start Date
                             </label>
                             <div className="relative">
-                                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                                 <input
                                     type="date"
                                     value={filters.startDate}
                                     onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-full pl-10 pr-4 py-2 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500/50 transition-colors [color-scheme:dark]"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
                                 End Date
                             </label>
                             <div className="relative">
-                                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                                 <input
                                     type="date"
                                     value={filters.endDate}
                                     onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-full pl-10 pr-4 py-2 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500/50 transition-colors [color-scheme:dark]"
                                 />
                             </div>
                         </div>
@@ -167,11 +173,11 @@ export default function AuditLog() {
                 </div>
 
                 {/* Activity List */}
-                <div className="bg-white rounded-lg shadow">
-                    <div className="p-6 border-b border-gray-200">
+                <div className="glass-panel rounded-2xl border border-white/5 overflow-hidden">
+                    <div className="p-6 border-b border-white/5 bg-white/5">
                         <div className="flex items-center gap-2">
-                            <Activity className="w-5 h-5 text-gray-400" />
-                            <h2 className="text-lg font-semibold text-gray-900">
+                            <Activity className="w-5 h-5 text-indigo-400" />
+                            <h2 className="text-lg font-semibold text-white">
                                 Activity Log ({activities.length})
                             </h2>
                         </div>
@@ -179,41 +185,50 @@ export default function AuditLog() {
 
                     {loading ? (
                         <div className="flex items-center justify-center h-64">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                            <Spinner size="lg" />
                         </div>
                     ) : activities.length === 0 ? (
-                        <div className="text-center py-12 text-gray-500">
-                            <Activity className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                            <p>No activities found</p>
+                        <div className="text-center py-16 text-gray-500">
+                            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
+                                <Activity className="w-8 h-8 text-gray-500" />
+                            </div>
+                            <p className="text-lg font-medium text-gray-400">No activities found</p>
+                            <p className="text-sm text-gray-600 mt-1">Try adjusting your filters</p>
                         </div>
                     ) : (
-                        <div className="divide-y divide-gray-200">
-                            {activities.map((activity) => (
-                                <div key={activity.id} className="p-6 hover:bg-gray-50 transition-colors">
+                        <div className="divide-y divide-white/5">
+                            {activities.map((activity, index) => (
+                                <motion.div
+                                    key={activity.id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.05 }}
+                                    className="p-6 hover:bg-white/5 transition-colors"
+                                >
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1">
                                             <div className="flex items-center gap-3 mb-2">
-                                                <span className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                                                <span className="px-3 py-1 bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-xs font-medium rounded-full uppercase tracking-wider">
                                                     {activity.agentName.replace(/_/g, ' ')}
                                                 </span>
-                                                <span className="text-sm text-gray-600">
+                                                <span className="text-sm font-medium text-white">
                                                     {activity.activityType.replace(/_/g, ' ')}
                                                 </span>
                                             </div>
-                                            <p className="text-sm text-gray-500">
+                                            <p className="text-sm text-gray-500 font-mono">
                                                 Project ID: {activity.projectId}
                                             </p>
                                         </div>
-                                        <span className="text-sm text-gray-500">
+                                        <span className="text-sm text-gray-400 font-mono">
                                             {new Date(activity.createdAt).toLocaleString()}
                                         </span>
                                     </div>
-                                </div>
+                                </motion.div>
                             ))}
                         </div>
                     )}
                 </div>
             </div>
-        </Layout>
+        </DashboardLayout>
     )
 }

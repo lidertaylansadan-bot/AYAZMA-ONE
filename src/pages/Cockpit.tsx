@@ -19,7 +19,7 @@ export default function Cockpit() {
 
     if (loading) {
         return (
-            <div className="flex h-screen items-center justify-center bg-premium-bg">
+            <div className="flex h-screen items-center justify-center bg-[#0F172A]">
                 <Spinner size="lg" />
             </div>
         );
@@ -29,8 +29,8 @@ export default function Cockpit() {
         return (
             <DashboardLayout title="Cockpit">
                 <div className="flex items-center justify-center min-h-[60vh]">
-                    <Card className="w-full max-w-md border-red-500/20">
-                        <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <div className="w-full max-w-md p-8 rounded-2xl bg-red-500/10 border border-red-500/20 backdrop-blur-sm">
+                        <div className="flex flex-col items-center justify-center text-center">
                             <div className="p-4 rounded-full bg-red-500/10 mb-4">
                                 <AlertCircle className="w-12 h-12 text-red-400" />
                             </div>
@@ -44,7 +44,7 @@ export default function Cockpit() {
                                 Tekrar Dene
                             </Button>
                         </div>
-                    </Card>
+                    </div>
                 </div>
             </DashboardLayout>
         );
@@ -57,17 +57,19 @@ export default function Cockpit() {
             <div className="mb-8 flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
-                        <LayoutDashboard className="w-8 h-8 text-indigo-400" />
+                        <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/20">
+                            <LayoutDashboard className="w-8 h-8 text-indigo-400" />
+                        </div>
                         Cockpit
                     </h1>
-                    <p className="text-premium-muted">Projeler, görevler ve ajanlar için komuta merkeziniz</p>
+                    <p className="text-gray-400">Projeler, görevler ve ajanlar için komuta merkeziniz</p>
                 </div>
                 <Button
                     onClick={refetch}
                     variant="ghost"
                     size="sm"
                     icon={RefreshCw}
-                    className="text-gray-400 hover:text-white"
+                    className="text-gray-400 hover:text-white hover:bg-white/5"
                 >
                     Yenile
                 </Button>

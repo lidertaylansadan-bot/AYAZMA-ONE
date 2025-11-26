@@ -47,7 +47,11 @@ import { initWorkers } from './modules/agents/workers/index.js'
 import { initSelfRepairSchedule } from './jobs/selfRepairWorker.js'
 import { initRegressionSchedule } from './jobs/regressionTestWorker.js'
 
-initWorkers()
+try {
+  initWorkers()
+} catch (err) {
+  logger.error({ err }, 'Failed to init workers')
+}
 initSelfRepairSchedule().catch(err => logger.error({ err }, 'Failed to init self-repair schedule'))
 initRegressionSchedule().catch(err => logger.error({ err }, 'Failed to init regression schedule'))
 
@@ -76,7 +80,7 @@ app.use('/api/ai/optimize', aiOptimizerRoutes)
 app.use('/api/cockpit', cockpitRoutes)
 app.use('/api/tasks', tasksRoutes)
 app.use('/api', contentRoutes)
-app.use('/api/feedback', feedbackRoutes)
+app.use('/api/feedback', feedbackRouter)
 app.use('/api/optimization', optimizationRouter)
 app.use('/api/compression', compressionRoutes)
 app.use('/api/audit', auditRoutes)

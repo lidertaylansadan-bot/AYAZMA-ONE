@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import Card from '../ui/Card';
 import { CockpitProject } from '../../hooks/useCockpitData';
 import {
     Building2,
@@ -11,7 +10,8 @@ import {
     Layers,
     Folder,
     Eye,
-    Wand2
+    Wand2,
+    ArrowRight
 } from 'lucide-react';
 import { apiCall } from '../../api/projects';
 import { toast } from 'sonner';
@@ -37,11 +37,11 @@ export function ProjectsPanel({ projects, onAgentRunStarted }: ProjectsPanelProp
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'draft': return 'bg-gray-700/50 text-gray-300 border border-gray-600';
-            case 'building': return 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/50';
-            case 'live': return 'bg-green-500/20 text-green-300 border border-green-500/50';
-            case 'archived': return 'bg-red-500/20 text-red-300 border border-red-500/50';
-            default: return 'bg-gray-700/50 text-gray-300 border border-gray-600';
+            case 'draft': return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
+            case 'building': return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
+            case 'live': return 'bg-green-500/10 text-green-400 border-green-500/20';
+            case 'archived': return 'bg-red-500/10 text-red-400 border-red-500/20';
+            default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
         }
     };
 
@@ -82,22 +82,37 @@ export function ProjectsPanel({ projects, onAgentRunStarted }: ProjectsPanelProp
 
     if (projects.length === 0) {
         return (
-            <Card className="p-8 text-center border-dashed border-2 border-white/10">
-                <Folder className="w-12 h-12 text-gray-500 mx-auto mb-3" />
-                <p className="text-gray-400">No projects yet</p>
-                <Link to="/dashboard" className="text-blue-400 hover:text-blue-300 text-sm mt-2 inline-block">
-                    Create your first project
+            <div className="glass-panel p-8 text-center rounded-2xl border border-white/5">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
+                    <Folder className="w-8 h-8 text-gray-500" />
+                </div>
+                <h3 className="text-lg font-medium text-white mb-2">No projects yet</h3>
+                <p className="text-gray-400 mb-6">Create your first project to get started</p>
+                <Link
+                    to="/dashboard"
+                    className="inline-flex items-center px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
+                >
+                    Create Project
                 </Link>
-            </Card>
+            </div>
         );
     }
 
     return (
-        <Card className="p-6">
+        <div className="glass-panel p-6 rounded-2xl border border-white/5">
             <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-white">Projects</h2>
-                <Link to="/dashboard" className="text-sm text-blue-400 hover:text-blue-300">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+                        <Folder className="w-5 h-5 text-indigo-400" />
+                    </div>
+                    <h2 className="text-xl font-bold text-white">Active Projects</h2>
+                </div>
+                <Link
+                    to="/dashboard"
+                    className="flex items-center text-sm text-gray-400 hover:text-white transition-colors group"
+                >
                     View All
+                    <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                 </Link>
             </div>
 
@@ -108,24 +123,26 @@ export function ProjectsPanel({ projects, onAgentRunStarted }: ProjectsPanelProp
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.05 }}
-                        className="flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all"
+                        className="group flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-indigo-500/30 transition-all duration-300"
                     >
                         <div className="flex items-center flex-1 min-w-0">
-                            <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-white/5 text-blue-400 mr-3">
+                            <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 border border-white/5 text-indigo-400 mr-4 group-hover:scale-110 transition-transform duration-300">
                                 {getProjectIcon(project.project_type)}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <h3 className="text-sm font-semibold text-white truncate">{project.name}</h3>
-                                <div className="flex items-center gap-2 mt-1">
-                                    <span className="text-xs text-gray-400 uppercase">{project.sector}</span>
-                                    <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${getStatusColor(project.status)}`}>
+                                <h3 className="text-sm font-semibold text-white truncate group-hover:text-indigo-300 transition-colors">
+                                    {project.name}
+                                </h3>
+                                <div className="flex items-center gap-2 mt-1.5">
+                                    <span className="text-xs text-gray-500 uppercase tracking-wider font-medium">{project.sector}</span>
+                                    <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full border ${getStatusColor(project.status)}`}>
                                         {project.status}
                                     </span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2 ml-4">
+                        <div className="flex items-center gap-2 ml-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                             <Link
                                 to={`/projects/${project.id}`}
                                 className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
@@ -136,7 +153,7 @@ export function ProjectsPanel({ projects, onAgentRunStarted }: ProjectsPanelProp
                             <button
                                 onClick={() => handleRunAgent(project.id)}
                                 disabled={runningAgents.has(project.id)}
-                                className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="p-2 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="Run Agent"
                             >
                                 <Wand2 className={`w-4 h-4 ${runningAgents.has(project.id) ? 'animate-spin' : ''}`} />
@@ -145,6 +162,6 @@ export function ProjectsPanel({ projects, onAgentRunStarted }: ProjectsPanelProp
                     </motion.div>
                 ))}
             </div>
-        </Card>
+        </div>
     );
 }
